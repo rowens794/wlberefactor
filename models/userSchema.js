@@ -23,6 +23,7 @@ var userSchema = new Schema({
     signUpDate: String,
     competitions: [],
     verified: Boolean,
+    verificationString: String,
 });
 
 userSchema.plugin(passportLocalMongoose);

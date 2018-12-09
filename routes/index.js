@@ -10,6 +10,7 @@ const Competition = mongoose.model('Competition');
 
 //my code imports
 var userController = require('../controllers/userController');
+var competitionController = require('../controllers/competitionController');
 
 /* ----------------- Routes ------------------ */
 router.get('/', function(req, res, next) {
@@ -23,12 +24,29 @@ router.post('/registration', function(req, res, next) {
 	userController.userRegistration(req, res);
 });
 
+router.get('/userVerification/:userID/:verificationToken', function(req, res, next) {
+
+	User.findById(req.params.userID, function (err, user) {
+		if (err) {
+			console.log('error verifying user')
+			res.redirect(rootURL+'/error');
+		}else{
+			//if users verification code matches the one originally assigned then set user to verified
+			user.verified = true
+			user.save()
+			res.redirect(rootURL+'/verified');
+		}
+	});
+});
+
 
 router.post('/signin', function(req, res, next) {
+
 	passport.authenticate('local', function(err, user, info) {
 		if (err) { return next(err)}
 
 		if (!user) { 
+			console.log(info)
 			return res.json(JSON.stringify({login: 'failed'}));
 		}
 
@@ -86,7 +104,17 @@ router.post('/compData', function(req, res, next) {
 	});
 });
 
+router.post('/limitedCompData', function(req, res, next) {
+	//retrieves competition data based on comp ID
+	Competition.findById(req.body.competitionId, function (err, competition) {
+		res.json(competition);
+	})
+});
+
 router.post('/updateCompData', function(req, res, next) {
+
+	console.log(req.body)
+
 	//retrieves competition data based on comp ID
 	const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
 
@@ -124,62 +152,14 @@ router.post('/updateCompData', function(req, res, next) {
 	});
 });
 
-router.post('/createCompetition', async function(req, res, next) {
-	// /createCompetition takes in form data and creates a new competition
+router.post('/createCompetition', function(req, res, next) {
+	//create the competition and respond back to front end
+	competitionController.createCompetition(req, res)
+});
 
-	//verify the users token
-	const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);  
-
-	//set start date variable
-	let x = moment(req.body.competitionInfo.StartDate); 
-
-	//determine # of days in competition
-	let days = 0
-	if(req.body.competitionInfo.Length == '8 Weeks') days = 7 * 8
-	if(req.body.competitionInfo.Length == '12 Weeks') days = 7 * 12
-	if(req.body.competitionInfo.Length == '16 Weeks') days = 7 * 16
-	if(req.body.competitionInfo.Length == '20 Weeks') days = 7 * 20
-
-	//create date object
-	let dates = {}
-	for (i=0; i<days; i++){
-		dates[x.add(1, 'days').format('M/D/YYYY')]= null
-	}
-
-	//append date object to each player
-	let players = req.body.competitionInfo.Players
-
-	for (i=0; i<players.length; i++){
-		players[i].push(dates)
-	} 
-
-	//create a new competition from the form info that is delivered to server
-	competition = new Competition({
-		CompetitionName:  req.body.competitionInfo.CompetitionName,
-		EntryFee: req.body.competitionInfo.EntryFee,
-		Payout: req.body.competitionInfo.Payout,
-		InterimPrize: req.body.competitionInfo.InterimPrize,
-		StartDate: req.body.competitionInfo.StartDate,
-		CompetitionLength: req.body.competitionInfo.Length,
-		Players: req.body.competitionInfo.Players,
-		DateObj: dates,
-	});
-
-	let id = competition._id + '' //convert competition ID to string 
-	let responseObj = '' //initialize a response object to store err/succes response
-
-	await competition.save().then( //save the competition
-		User.findOneAndUpdate({_id: userTokenID.userID}, //then grab the user and append the competition to the user that created the competition
-			{$addToSet: { competitions: {id: id, name: competition.CompetitionName} }}, //save comp ID and Name to user document
-			function (err) {
-				if (err) {responseObj = {"status":"failed"}} //mark res obj as success or failure
-				else {
-					responseObj = {"status":"success"}
-				}
-		}).catch(responseObj = {"status":"failed"}) //this error is hit if users messes with their jwt in local storage
-	).catch(responseObj = {"status":"failed"})
-
-	res.json(responseObj)
+router.post('/registerfrominvite/:compID', function(req, res, next) {
+	//create the competition and respond back to front end
+	userController.signUpToCompetition(req, res)
 });
 
 module.exports = router;

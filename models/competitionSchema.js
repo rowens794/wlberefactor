@@ -25,6 +25,7 @@ var competitionSchema = new Schema({
         required: true,
         trim: true },
     Players: [[]],
+    Invites: [[]],
     DateObj: {}
 });
 

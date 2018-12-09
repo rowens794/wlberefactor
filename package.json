@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "@sendgrid/mail": "^6.3.1",
     "body-parser": "^1.18.3",
     "cookie-parser": "~1.4.3",
     "cors": "^2.8.5",
@@ -17,6 +18,8 @@
     "http-errors": "~1.6.2",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.4.0",
+    "mailgun-js": "^0.22.0",
+    "md5": "^2.2.1",
     "moment": "^2.22.2",
     "mongoose": "^5.3.11",
     "mongoose-mongodb-errors": "0.0.2",
