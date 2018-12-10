@@ -18,8 +18,11 @@ var userSchema = new Schema({
         trim: true },
     email: {
         type: String,
-        required: true,
-        trim: true },
+        unique: true,
+        lowercase: true,
+        trim: true,
+        validate: [validator.isEmail, 'invalid email address'],
+        required: 'a valid email address is required' },
     signUpDate: String,
     competitions: [],
     verified: Boolean,

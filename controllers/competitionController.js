@@ -3,6 +3,7 @@ const User = mongoose.model('User');
 const jwt = require('jsonwebtoken');
 const moment = require('moment');
 const Competition = mongoose.model('Competition');
+var normalizeEmail = require('normalize-email')
 
 const mail = require('./mailController');
 
@@ -10,24 +11,19 @@ const mail = require('./mailController');
 var exports = module.exports = {};
 
 exports.createCompetition = async function (req, res) {
-
+    console.log('----------competitionController.createCompetition-----------')
     
     //verify the users token
     const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);  
-    console.log(userTokenID)
-    
 
     //get the creating users info
     User.findById(userTokenID.userID, async function (err, user) {
 		if (err) res.json({"status":"failed"})
         
         var admin = user
-        console.log(admin)
         
         //createCompetition takes in form data and creates a new competition
-        console.log('--------create competition----------')
-        console.log(req.body.competitionInfo.Players)
-        
+
 
         //set start date variable
         let x = moment(new Date(req.body.competitionInfo.StartDate)); 
@@ -46,22 +42,17 @@ exports.createCompetition = async function (req, res) {
         
         
         //create date object
-        let dates = {}
+        let dates= {[x.format('M/D/YYYY')]: null}
         for (i=0; i<days; i++){
             dates[x.add(1, 'days').format('M/D/YYYY')]= null
         }
     
 
         //create the admin and add them to the players list
-        console.log('-----admin object--------')
-        console.log(user.name)
-        console.log(user.email)
-        console.log(dates)
         let adminObject = []
         adminObject.push(user.name)
         adminObject.push(user.email)
         adminObject.push(dates)
-        console.log(adminObject)
 
 
         //create a new competition from the form info that is delivered to server
@@ -87,28 +78,46 @@ exports.createCompetition = async function (req, res) {
                     if (err) {responseObj = {"status":"failed"}} //mark res obj as success or failure
                     else {
 
-                        //send emails to each of the players in the competition
+                        //send emails to each of the players in the competition and add them to the competition object
                         for(i=0; i<invites.length; i++){
-                            var player = invites[i]
-                            console.log('preparing to send------------')
-                            console.log(player)
-                            var email = player[1]
-                            var name = player[0]
 
-                            //lookup the user and either add the hunt to their dashboard or send them a signup email
-                            await User.findOne({'email': email}, function (err, user) {
-                                if (err) {
-                                    console.log('error finding user')
-                                    throw err;
-                                }
-                                if (user) {
-                                    //add competition to existing user
-                                    
-                                }else{
-                                    //send email to new user
-                                    mail.sendJoinCompEmail(email, name, admin.name, id)
-                                }
-                            });
+                            //if statement setup to catch situation where admin also includes themselves in email list form
+                            if(normalizeEmail(admin.email) === normalizeEmail(invites[i][1])){
+                                console.log('Admin Email - Skip processing')
+
+                            }else{
+                                var player = invites[i]
+                                var email = player[1]
+                                var name = player[0]
+    
+                                //lookup the user and either add the hunt to their dashboard or send them a signup email
+    
+                                await User.findOne({'email': email}, function (err, invitedUser) {
+                                    if (err) {
+                                        console.log('error finding user')
+                                        throw err;
+                                    }
+    
+                                    if (invitedUser) {
+                                        //add invited player to the competition
+                                        competition.Players.push([invitedUser.name, invitedUser.username, dates])
+                                        competition.markModified('Players')
+                                        competition.save()
+    
+                                        //add competition to invited player
+                                        invitedUser.competitions.push({id: competition._id, name: competition.CompetitionName, admin: false})
+                                        invitedUser.markModified('competitions')
+                                        invitedUser.save()
+    
+                                        //email the invited user to let them know they've been added to a competition
+                                        mail.sendYouveBeenAddedEmail(email, invitedUser.name, admin.name)
+                                        
+                                    }else{
+                                        //send email to new user
+                                        mail.sendJoinCompEmail(email, name, admin.name, id)
+                                    }
+                                });
+                            }
                         }
                         responseObj = {"status":"success"}
                     }

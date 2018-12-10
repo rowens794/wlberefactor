@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const moment = require('moment');
 const User = mongoose.model('User');
 const Competition = mongoose.model('Competition');
+var normalizeEmail = require('normalize-email')
 
 //my code imports
 var userController = require('../controllers/userController');
@@ -107,13 +108,12 @@ router.post('/compData', function(req, res, next) {
 router.post('/limitedCompData', function(req, res, next) {
 	//retrieves competition data based on comp ID
 	Competition.findById(req.body.competitionId, function (err, competition) {
+		console.log(competition)
 		res.json(competition);
 	})
 });
 
 router.post('/updateCompData', function(req, res, next) {
-
-	console.log(req.body)
 
 	//retrieves competition data based on comp ID
 	const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
@@ -121,14 +121,19 @@ router.post('/updateCompData', function(req, res, next) {
 	//verify user by token
 	User.findById(userTokenID.userID, function (err, user) {
 		if (err) res.json({"status":"failed"})
-		var email = user.username
+		var email = normalizeEmail(user.username) // normalize the email so that formatting differences are ignored
 
 		//if user is legit then find competition by ID
 		Competition.findById(req.body.competitionId, function (err, competition) {
+			if(err){console.log('error finding competition----------------')}
+
 			for (let i=0; i<competition.Players.length; i++) {
 
 				//find the user in the competition by email
-				if (email == competition.Players[i][1]){
+				var competitionEmail = normalizeEmail(competition.Players[i][1]) // normalize the email so that formatting differences are ignored
+
+				if (email == competitionEmail){
+
 					// we have to do some data wrangling with the users information
 					let updateDate = Object.keys(req.body.updateFields)[0]
 					let newWeight = req.body.updateFields[updateDate]

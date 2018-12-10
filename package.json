@@ -24,6 +24,7 @@
     "mongoose": "^5.3.11",
     "mongoose-mongodb-errors": "0.0.2",
     "morgan": "~1.9.0",
+    "normalize-email": "^1.1.1",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^5.0.1",
