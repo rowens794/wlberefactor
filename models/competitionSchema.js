@@ -26,7 +26,8 @@ var competitionSchema = new Schema({
         trim: true },
     Players: [[]],
     Invites: [[]],
-    DateObj: {}
+    DateObj: {},
+    Admin: String
 });
 
 mongoose.model('Competition', competitionSchema);

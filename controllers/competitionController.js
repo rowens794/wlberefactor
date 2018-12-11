@@ -65,7 +65,8 @@ exports.createCompetition = async function (req, res) {
             CompetitionLength: req.body.competitionInfo.Length,
             Players: [adminObject],
             DateObj: dates,
-            Invites: invites
+            Invites: invites,
+            Admin: user.email
         });
     
         let id = competition._id + '' //convert competition ID to string 
@@ -129,3 +130,70 @@ exports.createCompetition = async function (req, res) {
     })
 }
 
+exports.addUser = async function (req, res) {
+    console.log('----------competitionController.addUser-----------')
+    console.log(req.body.newUser)
+    
+    //verify the users token
+    const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);  
+    console.log(userTokenID)
+
+    var compID = req.body.newUser.compID
+    var newUserName = req.body.newUser.name
+    var newUserEmail = req.body.newUser.email
+    console.log('----------------------')
+    console.log(compID)
+    console.log(newUserName)
+    console.log(newUserEmail)
+
+
+    //get the creating users info
+    User.findById(userTokenID.userID, async function (err, user) {
+        if (err) res.json({"status":"failed"})
+        else{
+            //verify that the user actually has the competition
+            var userHasComp = false 
+            for (i=0; i<user.competitions.length; i++){
+                if (user.competitions[i].id === compID && user.competitions[i].admin){
+                    userHasComp = true
+                }
+            }
+
+            if (!userHasComp){
+                //if user doesn't have competition and/or is not admin send an error response
+                res.json({"status":"failed"})
+
+            }else{
+                //lookup the user and either add the hunt to their dashboard or send them a signup email
+                await User.findOne({'email': newUserEmail}, function (err, invitedUser) {
+                    if (err) {
+                        console.log('error finding user')
+                        throw err;
+                    }
+
+                    if (invitedUser) {
+                        //add invited player to the competition
+                        competition.Players.push([invitedUser.name, invitedUser.username, dates])
+                        competition.markModified('Players')
+                        competition.save()
+
+                        //add competition to invited player
+                        invitedUser.competitions.push({id: competition._id, name: competition.CompetitionName, admin: false})
+                        invitedUser.markModified('competitions')
+                        invitedUser.save()
+
+                        //email the invited user to let them know they've been added to a competition
+                        mail.sendYouveBeenAddedEmail(newUserEmail, newUserName, user.name)
+                        
+                    }else{
+                        //send email to new user
+                        mail.sendJoinCompEmail(newUserEmail, newUserName, user.name, compID)
+                    }
+                });
+
+                //send success response back to frontend 
+                res.json({"status":"success"})
+            }            
+        }
+    })
+}

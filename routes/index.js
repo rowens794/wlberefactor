@@ -162,6 +162,11 @@ router.post('/createCompetition', function(req, res, next) {
 	competitionController.createCompetition(req, res)
 });
 
+router.post('/addUserToComp', function(req, res, next) {
+	//create the competition and respond back to front end
+	competitionController.addUser(req, res)
+});
+
 router.post('/registerfrominvite/:compID', function(req, res, next) {
 	//create the competition and respond back to front end
 	userController.signUpToCompetition(req, res)
