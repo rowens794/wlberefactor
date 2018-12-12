@@ -80,4 +80,28 @@ exports.sendYouveBeenAddedEmail = function (email, name, invitor) {
     });
 }
 
+exports.resetPasswordEmail = function (email, link) {
+    // using SendGrid's v3 Node.js Library
+    // https://github.com/sendgrid/sendgrid-nodejs
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log('----------mailController.resetPasswordEmail-----------')
+
+    const msg = {
+        to: email,
+        from: 'Ryan@bigloosers.com',
+        subject: `Reset Your Password`,
+        text: `Visit the following link to reset your password: ${link}`,
+        html: `<strong>Password Reset Link</strong><br /><p>Visit the following link to reset your password: <a href=${link}>Password Reset</a></p>`,
+    };
+
+    sgMail.send(msg, (error) => {
+        if(error){
+            console.log('0')
+        }else{
+            console.log('password reset sent successfully to ')
+            console.log(email)
+        }
+    });
+}
+
 

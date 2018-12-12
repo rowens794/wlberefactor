@@ -8,10 +8,12 @@ const moment = require('moment');
 const User = mongoose.model('User');
 const Competition = mongoose.model('Competition');
 var normalizeEmail = require('normalize-email')
+var md5 = require('md5');
 
 //my code imports
 var userController = require('../controllers/userController');
 var competitionController = require('../controllers/competitionController');
+const mail = require('../controllers/mailController');
 
 /* ----------------- Routes ------------------ */
 router.get('/', function(req, res, next) {
@@ -108,7 +110,6 @@ router.post('/compData', function(req, res, next) {
 router.post('/limitedCompData', function(req, res, next) {
 	//retrieves competition data based on comp ID
 	Competition.findById(req.body.competitionId, function (err, competition) {
-		console.log(competition)
 		res.json(competition);
 	})
 });
@@ -170,6 +171,54 @@ router.post('/addUserToComp', function(req, res, next) {
 router.post('/registerfrominvite/:compID', function(req, res, next) {
 	//create the competition and respond back to front end
 	userController.signUpToCompetition(req, res)
+});
+
+router.post('/forgotpassword', function(req, res, next) {
+	//reset user password
+
+	//look up user, generate a verification string and save string to db
+	User.findOne({email: req.body.username}, function(err, user){
+		if (err) {
+			console.log('---------error hit resetting password--------------')
+			console.log(err)
+			res.json({"reset":"failed"})
+		}else{
+			console.log('--------resetting password-------------')
+			let ID = user.id
+			let verificationString = md5(Math.random()*100000000)
+			user.verificationString = verificationString
+			user.save()
+
+			var resetURL = rootURL + '/resetpassword/' + ID + '/' + verificationString
+			mail.resetPasswordEmail(user.email, resetURL)
+			
+			res.json({'reset': 'success'})
+		}
+
+	})
+});
+
+router.post('/setpassword', function(req, res, next) {
+	//reset user password
+	console.log(req.body)
+
+	//look up user, generate a verification string and save string to db
+	User.findById(req.body.id, function(err, user){
+		if(err){
+			console.log('-------error finding user to reset password--------')
+			res.json({"reset":"failed"})
+		}else{
+			if(user.verificationString === req.body.verificationString){
+				user.setPassword(req.body.password, function(){
+					user.save()
+					res.json({"reset":"success"})
+				})
+			}else{
+				console.log('-------verificaiton string does not match DB--------')
+				res.json({"reset":"failed"})
+			}
+		}
+	})
 });
 
 module.exports = router;
