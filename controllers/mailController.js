@@ -50,7 +50,7 @@ exports.sendJoinCompEmail = function (email, name, invitor, competitionID) {
         if(error){
             console.log('0')
         }else{
-            console.log('confirmation message sent successfully to ')
+            console.log('sendJoinCompEmail message sent successfully to ')
             console.log(email)
         }
     });
@@ -74,7 +74,7 @@ exports.sendYouveBeenAddedEmail = function (email, name, invitor) {
         if(error){
             console.log('0')
         }else{
-            console.log('confirmation message sent successfully to ')
+            console.log('youveBeenAddedEmail message sent successfully to ')
             console.log(email)
         }
     });

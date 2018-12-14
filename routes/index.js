@@ -110,7 +110,12 @@ router.post('/compData', function(req, res, next) {
 router.post('/limitedCompData', function(req, res, next) {
 	//retrieves competition data based on comp ID
 	Competition.findById(req.body.competitionId, function (err, competition) {
-		res.json(competition);
+		if(err){
+			console.log(err)
+		}else{
+			console.log(competition)
+			res.json(competition);
+		}
 	})
 });
 
@@ -160,7 +165,7 @@ router.post('/updateCompData', function(req, res, next) {
 
 router.post('/createCompetition', function(req, res, next) {
 	//create the competition and respond back to front end
-	competitionController.createCompetition(req, res)
+	competitionController.createCompetitionRefac(req, res)
 });
 
 router.post('/addUserToComp', function(req, res, next) {

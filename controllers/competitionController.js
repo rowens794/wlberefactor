@@ -12,15 +12,19 @@ var exports = module.exports = {};
 
 exports.createCompetition = async function (req, res) {
     console.log('----------competitionController.createCompetition-----------')
+
+    console.log(req.body)
+    console.log(req.body.competitionInfo.Players)
+
+
+    console.log('-------------------------------------------------------')
     
     //verify the users token
     const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);  
 
     //get the creating users info
-    User.findById(userTokenID.userID, async function (err, user) {
+    User.findById(userTokenID.userID, async function (err, admin) {
 		if (err) res.json({"status":"failed"})
-        
-        var admin = user
         
         //createCompetition takes in form data and creates a new competition
 
@@ -50,8 +54,8 @@ exports.createCompetition = async function (req, res) {
 
         //create the admin and add them to the players list
         let adminObject = []
-        adminObject.push(user.name)
-        adminObject.push(user.email)
+        adminObject.push(admin.name)
+        adminObject.push(admin.email)
         adminObject.push(dates)
 
 
@@ -66,7 +70,7 @@ exports.createCompetition = async function (req, res) {
             Players: [adminObject],
             DateObj: dates,
             Invites: invites,
-            Admin: user.email
+            Admin: admin.email
         });
     
         let id = competition._id + '' //convert competition ID to string 
@@ -92,7 +96,6 @@ exports.createCompetition = async function (req, res) {
                                 var name = player[0]
     
                                 //lookup the user and either add the hunt to their dashboard or send them a signup email
-    
                                 await User.findOne({'email': email}, function (err, invitedUser) {
                                     if (err) {
                                         console.log('error finding user')
@@ -196,4 +199,144 @@ exports.addUser = async function (req, res) {
             }            
         }
     })
+}
+
+exports.createCompetitionRefac = async function (req, res) {
+
+    //1. verify the user token and store the ID'd user as the admin
+    var adminUser = null
+    const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY); 
+    await User.findById(userTokenID.userID, function(err, user){
+        if (err) {res.json({"status":"failed"})}
+        else{ adminUser = user }
+    })
+
+    //2. Create the competition document
+    var competitionDoc = await CreateCompetitionDocument(req.body.competitionInfo, adminUser)
+
+    //3. Clean the list of invited participants
+    var invitedPlayers = cleanInvitedParticipants(req.body.competitionInfo.Players, adminUser)
+
+    //4. Notify or Invite players that were selected to join the competition
+    competitionDoc = await inviteeNotification(invitedPlayers, competitionDoc)
+
+    //5. Add the competition to the Admin user's DB document
+    addCompToAdmin(adminUser.id, competitionDoc.id, competitionDoc.CompetitionName)
+
+    //6. Save the Competition and Send success response
+    competitionDoc.save()
+    res.json({"status":"success"})
+}
+
+
+function addCompToAdmin(adminID, compID, compName){
+    User.findById(adminID, function (err, user){
+        if(err){console.log('error finding admin')}
+        else{
+            user.competitions.push({id:compID, name:compName, admin: true })
+            user.markModified('competitions')
+            user.save()
+        }
+    })
+}
+
+async function inviteeNotification(invitedPlayers, competition){
+    var invitedPlayers = invitedPlayers
+
+    //for each invited player determine if that player exists in the DB
+    for(i=0; i<invitedPlayers.length; i++){
+        var invitedUser = null
+        await User.find({email: invitedPlayers[i][1]}, function(err, user){
+            if (err) {
+                console.log(err)
+                invitedUser = null
+            }
+            else{ invitedUser = user[0] }
+        })
+        
+        //if user exists: add user to the competition, save the competition to the users DB Object and notify user by email
+        if(invitedUser){
+            mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
+            competition.Players.push([invitedUser.name, invitedUser.email, competition.DateObj])
+            competition.markModified('Players')
+            invitedUser.competitions.push({id: competition.id, name: competition.CompetitionName, admin: false})
+            invitedUser.markModified('competitions')
+            invitedUser.save()
+        }
+        //if no user exists then send an invitation to the user
+        else{
+            mail.sendJoinCompEmail(invitedPlayers[i][1], invitedPlayers[i][0], competition.Players[0][0], competition.id)
+        }
+    }
+    return competition
+}
+
+
+
+//takes the list of players in a competition and removes duplicate users
+function cleanInvitedParticipants(invitedPlayers, adminUser){
+
+    adminEmail = adminUser.email
+
+    //remove admin from invitedPlayers list if they were accidentally added
+    for(i=0; i<invitedPlayers.length; i++){
+        if (normalizeEmail(adminEmail) === normalizeEmail(invitedPlayers[i][1])){
+            invitedPlayers.splice(i,1)
+        }
+    }
+
+    //remove any duplicate entries in invitedPlayers
+    for(i=0; i<invitedPlayers.length; i++){
+        for(j=i+1; j<invitedPlayers.length; j++){
+            if (normalizeEmail(invitedPlayers[i][1]) === normalizeEmail(invitedPlayers[j][1])){
+                x = invitedPlayers.splice(j,1)
+            }
+        }
+    }
+
+    return invitedPlayers
+}
+
+
+
+function CreateCompetitionDocument(competitionDetails, adminUser){
+
+    //1.1 set start date variable
+    let x = moment(new Date(competitionDetails.StartDate));
+
+    //1.2 determine # of days in competition
+    let days = 0
+    if(competitionDetails.Length == '8 Weeks') days = 7 * 8
+    if(competitionDetails.Length == '12 Weeks') days = 7 * 12
+    if(competitionDetails.Length == '16 Weeks') days = 7 * 16
+    if(competitionDetails.Length == '20 Weeks') days = 7 * 20
+
+    //1.3 from start date interate to create object
+    let dates= {[x.format('M/D/YYYY')]: null}
+    for (i=0; i<days; i++){
+        dates[x.add(1, 'days').format('M/D/YYYY')]= null
+    }
+
+    //2.1 Parse the admin for inclusion in the competition
+    let adminObject = []
+    adminObject.push(adminUser.name)
+    adminObject.push(adminUser.email)
+    adminObject.push(dates)
+
+    //2.2 Create the competition object from the form info that is delivered to server
+    competition = new Competition({
+        CompetitionName:  competitionDetails.CompetitionName,
+        EntryFee: competitionDetails.EntryFee,
+        Payout: competitionDetails.Payout,
+        InterimPrize: competitionDetails.InterimPrize,
+        StartDate: competitionDetails.StartDate,
+        CompetitionLength: competitionDetails.Length,
+        Players: [adminObject],
+        DateObj: dates,
+        Invites: competitionDetails.Players,
+        Admin: adminObject.email
+    });
+
+    return competition
+
 }
