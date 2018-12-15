@@ -44,6 +44,7 @@ router.get('/userVerification/:userID/:verificationToken', function(req, res, ne
 
 
 router.post('/signin', function(req, res, next) {
+	console.log(req.body)
 
 	passport.authenticate('local', function(err, user, info) {
 		if (err) { return next(err)}
@@ -170,7 +171,7 @@ router.post('/createCompetition', function(req, res, next) {
 
 router.post('/addUserToComp', function(req, res, next) {
 	//create the competition and respond back to front end
-	competitionController.addUser(req, res)
+	competitionController.addUserRefac(req, res)
 });
 
 router.post('/registerfrominvite/:compID', function(req, res, next) {

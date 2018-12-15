@@ -229,6 +229,90 @@ exports.createCompetitionRefac = async function (req, res) {
 }
 
 
+exports.addUserRefac = async function (req, res) {
+
+    //collect initial data
+    const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);  
+    var compID = req.body.newUser.compID
+    var newUserName = req.body.newUser.name
+    var newUserEmail = req.body.newUser.email
+
+    //1. Get the users DB Document & verify token
+    var adminUser = null
+    var response = null
+
+    await User.findById(userTokenID.userID, function(err, user) {if (err) {response = {"status":"failed"}} else{ adminUser = user }})
+
+    //2. collect the competition that the admin is attempting to add a user to
+    var competitionDoc = null
+    await Competition.findById(compID, function(err, competition) {if (err) {response = {"status":"failed"}} else{ competitionDoc = competition }})
+
+    //3. verify the admin has authority to add user to competition
+    if(!verifyAuthority(adminUser, compID)) {response = {"status":"failed"}}
+    console.log("3 passed")
+
+    //4. attempt to retrieve new users DB document
+    var newUser = null
+    await User.find({email: newUserEmail}, function(err, user) {if (err) {res.json({"status":"failed"})} else{ newUser = user[0] }})
+
+    //5. test if new user is signed up and either add to comp or invite based on status
+    if (newUser){
+        
+        //5.1 verify that newUser is not already signed up to compititon
+        var alreadySignedUp = false
+        for(i=0; i<newUser.competitions.length; i++){
+            if(newUser.competitions[i].id === compID){
+                alreadySignedUp = true
+            }
+        }
+
+        if(!alreadySignedUp){
+            console.log('user exists and is not already enrolled in competition')
+            competitionDoc.Players.push([newUser.name, newUser.email, competitionDoc.DateObj]) // add newUser to comp
+            newUser.competitions.push({id:competitionDoc.id, name:competitionDoc.competitionName, admin: false})
+            competitionDoc.markModified('Players')
+            competitionDoc.save()
+            newUser.markModified('competitions')
+            newUser.save()
+            mail.sendYouveBeenAddedEmail(newUser.email, newUser.name, adminUser.name)
+            response = {"status":"success"}
+        }else{
+            response = {"status":"user alread enrolled"}
+        }
+
+    }else{
+        console.log('no user account')
+        mail.sendJoinCompEmail(newUserEmail, newUserName, adminUser.name, competitionDoc.id)
+    }
+
+    //6. send success message to front end
+    res.json(response)
+}
+
+
+
+function verifyAuthority(userDocument, competitionID){
+    var hasAuthority = false
+    for(i=0; i<userDocument.competitions.length; i++){
+        if(userDocument.competitions[i].id === competitionID && userDocument.competitions[i].admin === true){
+            hasAuthority = true
+        }
+    }
+    return hasAuthority
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 function addCompToAdmin(adminID, compID, compName){
     User.findById(adminID, function (err, user){
         if(err){console.log('error finding admin')}
