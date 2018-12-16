@@ -105,3 +105,91 @@ exports.resetPasswordEmail = function (email, link) {
 }
 
 
+exports.sendWeeklyAnnouncement = function (index, sortedUsers, competitionInfo, competitionName, lookback) {
+    // using SendGrid's v3 Node.js Library
+    // https://github.com/sendgrid/sendgrid-nodejs
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    var leaderBoard = sortedUsers.map(user => {
+        return `<li>${user.name} - ${user[[lookback]]} - ${user.totalLoss} </li>`
+    })
+    leaderBoard = leaderBoard.join('')
+
+    const msg = {
+        to: sortedUsers[index].email,
+        from: 'Ryan@bigloosers.com',
+        subject: `${competitionName} Congrats to `,
+
+        text: `One more week down ${competitionName}.  Your percentage weight change for the week was ${sortedUsers[index][lookback]} and your total percentage weight change is ${sortedUsers[index].totalLoss}.  Keep working hard, you have until ${competitionInfo.competitionEndDate} to lose as much weight as you can.  As of right now, the leader of ${competitionName} is ${sortedUsers[0].name} with a total weight change of ${sortedUsers[0].totalLoss}.  `,
+        
+        html: `<strong>${competitionName} Weekly Update</strong><br /><p>Hi ${sortedUsers[index].name}, <br /> <br /> One more week down for the ${competitionName}.  Your percentage weight change for the week was ${sortedUsers[index][lookback]} and your total percentage weight change is ${sortedUsers[index].totalLoss}.  Keep working hard, you have until ${competitionInfo.competitionEndDate} to lose as much weight as you can.  As of right now, the leader of ${competitionName} is ${sortedUsers[0].name} with a total weight change of ${sortedUsers[0].totalLoss}.</p><ol>${leaderBoard}</ol>`,
+    };
+
+    sgMail.send(msg, (error) => {
+        if(error){
+            console.log('0')
+        }else{
+            console.log('weekly email sent successfully to ')
+            console.log(sortedUsers[index].email)
+        }
+    });
+}
+
+
+exports.sendInterimAnnouncement = function (index, sortedUsers, competitionInfo, competitionName, lookback) {
+    // using SendGrid's v3 Node.js Library
+    // https://github.com/sendgrid/sendgrid-nodejs
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    var leaderBoard = sortedUsers.map(user => {
+        return `<li>${user.name} - ${user[[lookback]]} - ${user.totalLoss} </li>`
+    })
+    leaderBoard = leaderBoard.join('')
+
+    const msg = {
+        to: sortedUsers[index].email,
+        from: 'Ryan@bigloosers.com',
+        subject: `${competitionName}: Congrats to ${sortedUsers[0].name}`,
+
+        text: `Your percentage weight change for the period was ${sortedUsers[index][lookback]} and your total percentage weight change is ${sortedUsers[index].totalLoss}.  Keep working hard, you have until ${competitionInfo.competitionEndDate} to lose as much weight as you can.  ${sortedUsers[0].name} has been awarded $${competitionInfo.interPrize} for losing the highest percentage during the current period.`,
+        
+        html: `${competitionName}: Congrats to ${sortedUsers[0].name}</strong><br /><p>Hi ${sortedUsers[index].name}, <br /> <br /> Your percentage weight change for the period was ${sortedUsers[index][lookback]} and your total percentage weight change is ${sortedUsers[index].totalLoss}.  Keep working hard, you have until ${competitionInfo.competitionEndDate} to lose as much weight as you can.  ${sortedUsers[0].name} has been awarded $${competitionInfo.interPrize} for losing the highest percentage during the current period.</p><ol>${leaderBoard}</ol>`,
+    };
+
+    sgMail.send(msg, (error) => {
+        if(error){
+            console.log('0')
+        }else{
+            console.log('weekly email sent successfully to ')
+            console.log(sortedUsers[index].email)
+        }
+    });
+}
+
+
+exports.sendWinnerAnnouncement = function (index, sortedUsers, competitionInfo, competitionName, lookback) {
+    // using SendGrid's v3 Node.js Library
+    // https://github.com/sendgrid/sendgrid-nodejs
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    var leaderBoard = sortedUsers.map(user => {
+        return `<li>${user.name} - ${user[[lookback]]} - ${user.totalLoss} </li>`
+    })
+    leaderBoard = leaderBoard.join('')
+
+    const msg = {
+        to: sortedUsers[index].email,
+        from: 'Ryan@bigloosers.com',
+        subject: `${competitionName}: A Winner is Crowned`,
+
+        text: `After many weeks and lots of pounds shed, a winner is finally crowned ${sortedUsers[0].name} has won the ${competitionName} by losing ${sortedUsers[0].totalLoss}% of their bodyweight. For their efforts, ${sortedUsers[0].name} wins the grand prize of $${competitionInfo.grandPrizes[0]}. You have lost a total of ${sortedUsers[index].totalLoss}%.`,
+        
+        html: `${competitionName}: Congrats to ${sortedUsers[0].name}</strong><br /><p>After many weeks and lots of pounds shed, a winner is finally crowned ${sortedUsers[0].name} has won the ${competitionName} by losing ${sortedUsers[0].totalLoss}% of their bodyweight. For their efforts, ${sortedUsers[0].name} wins the grand prize of $${competitionInfo.grandPrizes[0]}. You have lost a total of ${sortedUsers[index].totalLoss}%.</p><ol>${leaderBoard}</ol>`,
+    };
+
+    sgMail.send(msg, (error) => {
+        if(error){
+            console.log('0')
+        }else{
+            console.log('weekly email sent successfully to ')
+            console.log(sortedUsers[index].email)
+        }
+    });
+}

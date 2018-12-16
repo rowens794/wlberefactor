@@ -249,7 +249,6 @@ exports.addUserRefac = async function (req, res) {
 
     //3. verify the admin has authority to add user to competition
     if(!verifyAuthority(adminUser, compID)) {response = {"status":"failed"}}
-    console.log("3 passed")
 
     //4. attempt to retrieve new users DB document
     var newUser = null

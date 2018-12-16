@@ -11,9 +11,11 @@ var normalizeEmail = require('normalize-email')
 var md5 = require('md5');
 
 //my code imports
-var userController = require('../controllers/userController');
-var competitionController = require('../controllers/competitionController');
+const userController = require('../controllers/userController');
+const competitionController = require('../controllers/competitionController');
 const mail = require('../controllers/mailController');
+const cron = require('../controllers/cronController')
+
 
 /* ----------------- Routes ------------------ */
 router.get('/', function(req, res, next) {
@@ -227,4 +229,12 @@ router.post('/setpassword', function(req, res, next) {
 	})
 });
 
+router.get('/cronpost', function(req, res){
+	//cron post will provide updates to competitors the day after each weeks completion
+	cron.sendReviewEmails(req, res)
+
+})
+
 module.exports = router;
+
+
