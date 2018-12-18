@@ -36,7 +36,7 @@ exports.userRegistration = async function (req, res) {
             }
             
             //once authenticated send user to registration recieved page
-            res.redirect(rootURL + '/registrationrecieved')
+            res.redirect(rootURL + 'registrationrecieved')
         });
     });
 };
@@ -48,7 +48,7 @@ exports.userValidation = function (req, res, next) {
     const errors = req.validationErrors();
     if (errors){
         console.log(errors)
-        res.redirect(rootURL+'/register', errors);
+        res.redirect(rootURL+'register', errors);
     }
 };
 
@@ -105,7 +105,7 @@ exports.signUpToCompetition = async function (req, res) {
                     user.save()
 
                     //once authenticated send user to registration recieved page
-                    res.redirect(rootURL + '/registrationrecieved')
+                    res.redirect(rootURL + 'registrationrecieved')
                 }
             })
         })

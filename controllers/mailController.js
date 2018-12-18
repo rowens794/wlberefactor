@@ -18,7 +18,7 @@ exports.sendWelcomeEmail = function (email, userID, verificationString, competit
         to: email,
         from: 'Ryan@bigloosers.com',
         subject: 'Welcome to Big Loosers - Verification',
-        text: `Welcome to Big Loosers! Starting and joining a Weightloss competition with your friends and family is easy. All that you need to do to get start is click the following registration link to confirm your email address. ${process.env.SERVER_URL + '/userVerification' + userID + '/' + verificationString}`,
+        text: `Welcome to Big Loosers! Starting and joining a Weightloss competition with your friends and family is easy. All that you need to do to get start is click the following registration link to confirm your email address. ${process.env.SERVER_URL + 'userVerification' + userID + '/' + verificationString}`,
         html: htmlString    
     };
 
@@ -42,8 +42,8 @@ exports.sendJoinCompEmail = function (email, name, invitor, competitionID) {
         to: email,
         from: 'Ryan@bigloosers.com',
         subject: "You've been Invited to a Weightloss Competition",
-        text: `Hi ${name}, You've been Invited to a Weightloss Competition by ${invitor}.  To join, follow this link and create your own account: ${rootURL}/joinacompetition/${competitionID}`,
-        html: `<strong>You've been Invited to a Weightloss Competition</strong><br /><p>Hi ${name}, ${invitor} has invited you to join a weightloss competition. To join, follow this link and create your own account: <a href=${rootURL}/joinacompetition/${competitionID}>Create Account</p>`,
+        text: `Hi ${name}, You've been Invited to a Weightloss Competition by ${invitor}.  To join, follow this link and create your own account: ${rootURL}joinacompetition/${competitionID}`,
+        html: `<strong>You've been Invited to a Weightloss Competition</strong><br /><p>Hi ${name}, ${invitor} has invited you to join a weightloss competition. To join, follow this link and create your own account: <a href=${rootURL}joinacompetition/${competitionID}>Create Account</p>`,
     };
 
     sgMail.send(msg, (error, msg) => {
