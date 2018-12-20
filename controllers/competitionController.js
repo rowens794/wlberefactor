@@ -85,6 +85,7 @@ exports.createCompetition = async function (req, res) {
 
                         //send emails to each of the players in the competition and add them to the competition object
                         for(i=0; i<invites.length; i++){
+                            console.log(`${i} cycling through competition participants`)
 
                             //if statement setup to catch situation where admin also includes themselves in email list form
                             if(normalizeEmail(admin.email) === normalizeEmail(invites[i][1])){
@@ -103,6 +104,7 @@ exports.createCompetition = async function (req, res) {
                                     }
     
                                     if (invitedUser) {
+                                        console.log(`found user: ${invitedUser.name}`)
                                         //add invited player to the competition
                                         competition.Players.push([invitedUser.name, invitedUser.username, dates])
                                         competition.markModified('Players')
@@ -118,6 +120,7 @@ exports.createCompetition = async function (req, res) {
                                         
                                     }else{
                                         //send email to new user
+                                        console.log(`did not find user ${invites[i]}`)
                                         mail.sendJoinCompEmail(email, name, admin.name, id)
                                     }
                                 });
