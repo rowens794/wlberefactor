@@ -34,12 +34,12 @@ router.get('/userVerification/:userID/:verificationToken', function(req, res, ne
 	User.findById(req.params.userID, function (err, user) {
 		if (err) {
 			console.log('error verifying user')
-			res.redirect(rootURL+'/error');
+			res.redirect(rootURL+'error');
 		}else{
 			//if users verification code matches the one originally assigned then set user to verified
 			user.verified = true
 			user.save()
-			res.redirect(rootURL+'/verified');
+			res.redirect(rootURL+'verified');
 		}
 	});
 });
@@ -197,7 +197,7 @@ router.post('/forgotpassword', function(req, res, next) {
 			user.verificationString = verificationString
 			user.save()
 
-			var resetURL = rootURL + '/resetpassword/' + ID + '/' + verificationString
+			var resetURL = rootURL + 'resetpassword/' + ID + '/' + verificationString
 			mail.resetPasswordEmail(user.email, resetURL)
 			
 			res.json({'reset': 'success'})
