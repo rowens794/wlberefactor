@@ -115,10 +115,10 @@ function verifyAuthority(userDocument, competitionID){
 }
 
 
-function addCompToAdmin(adminID, compID, compName){
+async function addCompToAdmin(adminID, compID, compName){
     console.log("---------addCompToAdmin----------")
     console.log(`adminID: ${adminID} | compID: ${compID} | compName: ${compName}`)
-    User.findById(adminID, function (err, user){
+    await User.findById(adminID, async function (err, user){
         if(err){console.log('error finding admin')}
         else{
             await user.competitions.push({id:compID, name:compName, admin: true })
