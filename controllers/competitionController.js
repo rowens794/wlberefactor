@@ -222,6 +222,7 @@ exports.createCompetitionRefac = async function (req, res) {
 
     //3. Clean the list of invited participants
     var invitedPlayers = await cleanInvitedParticipants(req.body.competitionInfo.Players, adminUser)
+    console.log(invitedPlayers)
 
     //4. Notify or Invite players that were selected to join the competition
     competitionDoc = await inviteeNotification(invitedPlayers, competitionDoc)
@@ -337,6 +338,7 @@ async function inviteeNotification(invitedPlayers, competition){
         })
         
         //if user exists: add user to the competition, save the competition to the users DB Object and notify user by email
+        console.log(`${invitedPlayers[i]} : invitedUser`)
         if(invitedUser){
             await mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
             await competition.Players.push([invitedUser.name, invitedUser.email, competition.DateObj])
