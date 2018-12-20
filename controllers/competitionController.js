@@ -117,12 +117,13 @@ function verifyAuthority(userDocument, competitionID){
 
 function addCompToAdmin(adminID, compID, compName){
     console.log("---------addCompToAdmin----------")
+    console.log(`adminID: ${adminID} | compID: ${compID} | compName: ${compName}`)
     User.findById(adminID, function (err, user){
         if(err){console.log('error finding admin')}
         else{
-            user.competitions.push({id:compID, name:compName, admin: true })
-            user.markModified('competitions')
-            user.save()
+            await user.competitions.push({id:compID, name:compName, admin: true })
+            await user.markModified('competitions')
+            await user.save()
         }
     })
     return true
@@ -133,12 +134,11 @@ async function inviteeNotification(invitedPlayers, competition){
     var invitedPlayers = invitedPlayers
 
     //for each invited player determine if that player exists in the DB
-    console.log(invitedPlayers)
+    console.table(invitedPlayers)
     console.log("------------begin for loop --------------")
     for(i=0; i<invitedPlayers.length; i++){
-        console.log(invitedPlayers[i])
+        console.log(`${i}: ${invitedPlayers[i]}`)
         await User.find({email: invitedPlayers[i][1]}, async function(err, user){
-            console.log(user)
             if (err) {
                 console.log(err)
             }
@@ -161,27 +161,26 @@ async function inviteeNotification(invitedPlayers, competition){
 }
 
 async function processNewParticipant(email, name, admin, competitionID){
-    console.log('email')
-    console.log(email)
-    console.log('name')
-    console.log(name)
-    mail.sendJoinCompEmail(email, name, admin, competitionID)
+    console.log('----------processNewParticipant----------')
+    console.log(`email: ${email} | name: ${name} | admin: ${admin} | competitionID: ${competitionID}`)
+    await mail.sendJoinCompEmail(email, name, admin, competitionID)
     return true
 }
 
 async function processExistingParticipant(invitedUser, competition){
-    console.log(invitedUser)
+    console.log('----------processExistingParticipant----------')
+    console.log(`invitedUser: ${invitedUser}`)
     //1. send you've been added email
-    mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
+    await mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
 
     //2. add player to competition
-    competition.Players.push([invitedUser.name, invitedUser.email, competition.DateObj])
-    competition.markModified('Players')
+    await competition.Players.push([invitedUser.name, invitedUser.email, competition.DateObj])
+    await competition.markModified('Players')
 
     //3. add competition to player
-    invitedUser.competitions.push({id: competition.id, name: competition.CompetitionName, admin: false})
-    invitedUser.markModified('competitions')
-    invitedUser.save()
+    await invitedUser.competitions.push({id: competition.id, name: competition.CompetitionName, admin: false})
+    await invitedUser.markModified('competitions')
+    await invitedUser.save()
 
     //4. return competition object
     return competition
@@ -208,6 +207,8 @@ function cleanInvitedParticipants(invitedPlayers, adminUser){
             }
         }
     }
+
+    console.table(invitedPlayers)
 
     return invitedPlayers
 }
@@ -251,6 +252,8 @@ function CreateCompetitionDocument(competitionDetails, adminUser){
         Invites: competitionDetails.Players,
         Admin: adminObject.email
     });
+
+    console.log(competition)
 
     return competition
 
