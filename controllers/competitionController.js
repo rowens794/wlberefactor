@@ -140,7 +140,7 @@ async function inviteeNotification(invitedPlayers, competition){
     invitedPlayers.forEach(function(invitedPlayer, index){
         console.log(`${index}: ${invitedPlayer}`)
 
-        User.find({email: invitedPlayer[1]}, async function(err, user){
+        await User.find({email: invitedPlayer[1]}, async function(err, user){
             if (err) {
                 console.log(err)
             }
