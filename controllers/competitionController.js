@@ -136,26 +136,26 @@ async function inviteeNotification(invitedPlayers, competition){
     //for each invited player determine if that player exists in the DB
     console.table(invitedPlayers)
     console.log("------------begin for loop --------------")
-    for(i=0; i<invitedPlayers.length; i++){
-        console.log(`${i}: ${invitedPlayers[i]}`)
-        await User.find({email: invitedPlayers[i][1]}, async function(err, user){
+
+    invitedPlayers.forEach(function(invitedPlayer, index){
+        console.log(`${index}: ${invitedPlayer}`)
+
+        User.find({email: invitedPlayers[i][1]}, async function(err, user){
             if (err) {
                 console.log(err)
             }
             else if(user){ 
                 console.log('found user')
-                console.log(user.name)
                 //invitedUser = user[0] 
                 competition = await processExistingParticipant(user, competition)
 
             }
             else{
                 console.log('new user')
-                let newParticipantAdded = await processNewParticipant(invitedPlayers[i][1], invitedPlayers[i][0], competition.Players[0][0], competition.id)
-                console.log(newParticipantAdded)
+                processNewParticipant(invitedPlayer[1], invitedPlayer[0], competition.Players[0][0], competition.id)
             }
         })
-    }
+    });
 
     return competition
 }
