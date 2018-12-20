@@ -121,6 +121,8 @@ exports.createCompetition = async function (req, res) {
                                     }else{
                                         //send email to new user
                                         console.log(`did not find user ${invites[i]}`)
+                                        console.log("-------------------------")
+                                        console.log(invitedUser)
                                         mail.sendJoinCompEmail(email, name, admin.name, id)
                                     }
                                 });
