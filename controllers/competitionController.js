@@ -334,11 +334,15 @@ async function inviteeNotification(invitedPlayers, competition){
                 console.log(err)
                 invitedUser = null
             }
-            else{ invitedUser = user[0] }
+            
+            else{ 
+                console.log('found user')
+                invitedUser = user[0] 
+            }
         })
         
         //if user exists: add user to the competition, save the competition to the users DB Object and notify user by email
-        console.log(`${invitedPlayers[i]} : invitedUser`)
+        console.log(`${invitedPlayers[i]} : ${invitedUser}`)
         if(invitedUser){
             await mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
             await competition.Players.push([invitedUser.name, invitedUser.email, competition.DateObj])
