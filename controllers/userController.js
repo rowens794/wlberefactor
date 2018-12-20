@@ -24,7 +24,7 @@ exports.userRegistration = async function (req, res) {
 
 
         //send a welcome email with verification string to new user
-        mail.sendWelcomeEmail(user.email, user._id, user.verificationString)
+        mail.sendWelcomeEmail(user.email, user._id, user.name, user.verificationString)
         console.log('registration email sent')
 
         //authenticate the user

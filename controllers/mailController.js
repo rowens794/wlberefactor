@@ -1,35 +1,49 @@
 const sgMail = require('@sendgrid/mail');
 
-exports.sendWelcomeEmail = function (email, userID, verificationString, competitionID) {
+exports.sendWelcomeEmail = function (email, userID, name, verificationString, competitionID) {
     // using SendGrid's v3 Node.js Library
     // https://github.com/sendgrid/sendgrid-nodejs
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-    console.log('----------mailController.sendWelcomeEmail-----------')
+    // console.log('----------mailController.sendWelcomeEmail-----------')
 
-    if (competitionID != undefined){
-        var htmlString = `<strong>Welcome to Big Loosers!</strong><br /><p>Starting and joining a Weightloss competition with your friends and family is easy. All that you need to do to get start is click the following registration link to confirm your email address.</p><a href=${process.env.SERVER_URL + '/userVerification/' + userID + '/' + verificationString + '?comp=' + competitionID}>verify email`
-    }
-    else{
-        var htmlString = `<strong>Welcome to Big Loosers!</strong><br /><p>Starting and joining a Weightloss competition with your friends and family is easy. All that you need to do to get start is click the following registration link to confirm your email address.</p><a href=${process.env.SERVER_URL + '/userVerification/' + userID + '/' + verificationString}>verify email`
-    }
+    // if (competitionID != undefined){
+    //     var htmlString = `<strong>Welcome to Big Loosers!</strong><br /><p>Starting and joining a Weightloss competition with your friends and family is easy. All that you need to do to get start is click the following registration link to confirm your email address.</p><a href=${process.env.SERVER_URL + '/userVerification/' + userID + '/' + verificationString + '?comp=' + competitionID}>verify email`
+    // }
+    // else{
+    //     var htmlString = `<strong>Welcome to Big Loosers!</strong><br /><p>Starting and joining a Weightloss competition with your friends and family is easy. All that you need to do to get start is click the following registration link to confirm your email address.</p><a href=${process.env.SERVER_URL + '/userVerification/' + userID + '/' + verificationString}>verify email`
+    // }
+
+    // const msg = {
+    //     to: email,
+    //     from: 'Ryan@bigloosers.com',
+    //     subject: 'Welcome to Big Loosers - Verification',
+    //     text: `Welcome to Big Loosers! Starting and joining a Weightloss competition with your friends and family is easy. All that you need to do to get start is click the following registration link to confirm your email address. ${process.env.SERVER_URL + 'userVerification' + userID + '/' + verificationString}`,
+    //     html: htmlString    
+    // };
+
+    // sgMail.send(msg, (error, msg) => {
+    //     if(error){
+    //         console.log('0')
+    //     }else{
+    //         console.log('confirmation message sent successfully to ')
+    //         console.log(email)
+    //     }
+    // });
 
     const msg = {
         to: email,
-        from: 'Ryan@bigloosers.com',
-        subject: 'Welcome to Big Loosers - Verification',
-        text: `Welcome to Big Loosers! Starting and joining a Weightloss competition with your friends and family is easy. All that you need to do to get start is click the following registration link to confirm your email address. ${process.env.SERVER_URL + 'userVerification' + userID + '/' + verificationString}`,
-        html: htmlString    
-    };
-
-    sgMail.send(msg, (error, msg) => {
-        if(error){
-            console.log('0')
-        }else{
-            console.log('confirmation message sent successfully to ')
-            console.log(email)
-        }
-    });
+        from: 'ryan@flippingthescales.com',
+        subject: 'Welcome to Flipping The Scales - Verification',
+        text: 'Welcome to Flipping The Scales - Verification',
+        templateId: 'd-44519cf99b874974b6d561b52a0c9648',
+        data: {
+          name: name,
+          userId: userID,
+          verificationString: verificationString,
+        },
+      };
+      sgMail.send(msg);
 }
 
 exports.sendJoinCompEmail = function (email, name, invitor, competitionID) {
