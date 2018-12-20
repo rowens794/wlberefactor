@@ -4,7 +4,6 @@ exports.sendWelcomeEmail = function (email, userID, name, verificationString, co
     // using SendGrid's v3 Node.js Library
     // https://github.com/sendgrid/sendgrid-nodejs
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    sgMail.setSubstitutionWrappers('{{', '}}')
     // console.log('----------mailController.sendWelcomeEmail-----------')
 
     // if (competitionID != undefined){
@@ -37,13 +36,12 @@ exports.sendWelcomeEmail = function (email, userID, name, verificationString, co
         subject: 'Welcome to Flipping The Scales - Verification',
         text: 'Welcome to Flipping The Scales - Verification',
         templateId: 'd-44519cf99b874974b6d561b52a0c9648',
-        personalizations: [
-            {data:{
+        dynamic_template_data: {
                 name: name,
                 userId: userID,
-                verificationString: verificationString }
-                }
-            ]}
+                verificationString: verificationString 
+            }
+        }
       sgMail.send(msg);
 }
 
