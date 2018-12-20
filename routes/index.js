@@ -116,7 +116,6 @@ router.post('/limitedCompData', function(req, res, next) {
 		if(err){
 			console.log(err)
 		}else{
-			console.log(competition)
 			res.json(competition);
 		}
 	})

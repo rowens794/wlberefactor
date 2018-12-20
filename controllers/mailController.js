@@ -10,6 +10,13 @@ exports.sendWelcomeEmail = function (email, userID, name, verificationString, co
         verificationString = verificationString + '?comp=' + competitionID
     }
 
+    console.log('--email name userId verificationString--')
+    console.log(email)
+    console.log(name)
+    console.log(userID)
+    console.log(verificationString)
+
+
     const msg = {
         to: email,
         from: 'ryan@flippingthescales.com',
