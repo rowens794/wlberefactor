@@ -137,7 +137,7 @@ async function inviteeNotification(invitedPlayers, competition){
     console.table(invitedPlayers)
     console.log("------------begin for loop --------------")
 
-    invitedPlayers.forEach(function(invitedPlayer, index){
+    invitedPlayers.forEach(async function(invitedPlayer, index){
         console.log(`${index}: ${invitedPlayer}`)
 
         await User.find({email: invitedPlayer[1]}, async function(err, user){
