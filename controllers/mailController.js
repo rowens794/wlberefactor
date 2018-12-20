@@ -64,7 +64,7 @@ exports.sendJoinCompEmail = function (email, name, invitor, competitionID) {
 
 }
 
-exports.sendYouveBeenAddedEmail = function (email, name, invitor) {
+exports.sendYouveBeenAddedEmail = async function (email, name, invitor) {
     // using SendGrid's v3 Node.js Library
     // https://github.com/sendgrid/sendgrid-nodejs
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -82,7 +82,7 @@ exports.sendYouveBeenAddedEmail = function (email, name, invitor) {
         html: `<strong>You've been Invited to a Weightloss Competition</strong><br /><p>Hi ${name}, ${invitor} has added you to a weightloss competition. To play, simply log into your account at <a href=${rootURL}>${rootURL}</a> and log your weight.</p>`,
     };
 
-    sgMail.send(msg, (error, msg) => {
+    await sgMail.send(msg, (error, msg) => {
         if(error){
             console.log('0')
         }else{
