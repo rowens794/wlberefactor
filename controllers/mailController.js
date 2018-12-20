@@ -37,10 +37,12 @@ exports.sendWelcomeEmail = function (email, userID, name, verificationString, co
         subject: 'Welcome to Flipping The Scales - Verification',
         text: 'Welcome to Flipping The Scales - Verification',
         templateId: 'd-44519cf99b874974b6d561b52a0c9648',
-        substitutions: {
-          name: name,
-          userId: userID,
-          verificationString: verificationString,
+        personalizations: 
+            {data:{
+                name: name,
+                userId: userID,
+                verificationString: verificationString,
+            }
         },
       };
       sgMail.send(msg);
