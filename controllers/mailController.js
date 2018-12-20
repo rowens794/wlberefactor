@@ -10,16 +10,9 @@ exports.sendWelcomeEmail = function (email, userID, name, verificationString, co
         verificationString = verificationString + '?comp=' + competitionID
     }
 
-    console.log('--email name userId verificationString--')
-    console.log(email)
-    console.log(name)
-    console.log(userID)
-    console.log(verificationString)
-
-
     const msg = {
         to: email,
-        from: 'ryan@flippingthescales.com',
+        from: 'Ryan@flippingthescales.com',
         subject: 'Welcome to Flipping The Scales - Verification',
         text: 'Welcome to Flipping The Scales - Verification',
         templateId: 'd-44519cf99b874974b6d561b52a0c9648',
@@ -29,7 +22,15 @@ exports.sendWelcomeEmail = function (email, userID, name, verificationString, co
                 verificationString: verificationString 
             }
         }
-      sgMail.send(msg);
+    
+        sgMail.send(msg, (error, msg) => {
+        if(error){
+            console.log(error)
+        }else{
+            console.log('sendWelcomeEmail message sent successfully to ')
+            console.log(email)
+        }
+    });
 }
 
 exports.sendJoinCompEmail = function (email, name, invitor, competitionID) {
@@ -38,22 +39,29 @@ exports.sendJoinCompEmail = function (email, name, invitor, competitionID) {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     console.log('----------mailController.sendJoinCompEmail-----------')
 
+    //template access
     const msg = {
         to: email,
-        from: 'Ryan@bigloosers.com',
+        from: 'Ryan@flippingthescales.com',
         subject: "You've been Invited to a Weightloss Competition",
-        text: `Hi ${name}, You've been Invited to a Weightloss Competition by ${invitor}.  To join, follow this link and create your own account: ${rootURL}joinacompetition/${competitionID}`,
-        html: `<strong>You've been Invited to a Weightloss Competition</strong><br /><p>Hi ${name}, ${invitor} has invited you to join a weightloss competition. To join, follow this link and create your own account: <a href=${rootURL}joinacompetition/${competitionID}>Create Account</p>`,
-    };
-
-    sgMail.send(msg, (error, msg) => {
+        text: "You've been Invited to a Weightloss Competition",
+        templateId: 'd-36191e3152884567a61ff6ee9aac6acb',
+        dynamic_template_data: {
+                name: name,
+                invitor: invitor,
+                compID: competitionID 
+            }
+        }
+    
+        sgMail.send(msg, (error, msg) => {
         if(error){
-            console.log('0')
+            console.log(error)
         }else{
             console.log('sendJoinCompEmail message sent successfully to ')
             console.log(email)
         }
     });
+
 }
 
 exports.sendYouveBeenAddedEmail = function (email, name, invitor) {
