@@ -328,37 +328,66 @@ async function inviteeNotification(invitedPlayers, competition){
 
     //for each invited player determine if that player exists in the DB
     for(i=0; i<invitedPlayers.length; i++){
-        var invitedUser = null
         await User.find({email: invitedPlayers[i][1]}, function(err, user){
             if (err) {
                 console.log(err)
-                invitedUser = null
             }
-            
-            else{ 
+            else if(user){ 
                 console.log('found user')
-                invitedUser = user[0] 
+                //invitedUser = user[0] 
+                competition = await processExistingParticipant(invitedUser, competition)
+
+            }
+            else{
+                console.log('new user')
+                await processNewParticipant(invitedPlayers[i][1], invitedPlayers[i][0], competition.Players[0][0], competition.id)
             }
         })
         
-        //if user exists: add user to the competition, save the competition to the users DB Object and notify user by email
-        console.log(`${invitedPlayers[i]} : ${invitedUser}`)
-        if(invitedUser){
-            await mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
-            await competition.Players.push([invitedUser.name, invitedUser.email, competition.DateObj])
-            await competition.markModified('Players')
-            await invitedUser.competitions.push({id: competition.id, name: competition.CompetitionName, admin: false})
-            await invitedUser.markModified('competitions')
-            await invitedUser.save()
-        }
-        //if no user exists then send an invitation to the user
-        else{
-            await mail.sendJoinCompEmail(invitedPlayers[i][1], invitedPlayers[i][0], competition.Players[0][0], competition.id)
-        }
+        // //if user exists: add user to the competition, save the competition to the users DB Object and notify user by email
+        // console.log(`${invitedPlayers[i]} : ${invitedUser}`)
+        // if(invitedUser){
+        //     await mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
+        //     await competition.Players.push([invitedUser.name, invitedUser.email, competition.DateObj])
+        //     await competition.markModified('Players')
+        //     await invitedUser.competitions.push({id: competition.id, name: competition.CompetitionName, admin: false})
+        //     await invitedUser.markModified('competitions')
+        //     await invitedUser.save()
+        // }
+        // //if no user exists then send an invitation to the user
+        // else{
+        //     //await mail.sendJoinCompEmail(invitedPlayers[i][1], invitedPlayers[i][0], competition.Players[0][0], competition.id)
+        //     await processNewParticipant(invitedPlayers[i][1], invitedPlayers[i][0], competition.Players[0][0], competition.id)
+        // }
     }
     return competition
 }
 
+async function processNewParticipant(email, name, admin, competitionID){
+    console.log('email')
+    console.log(email)
+    console.log('name')
+    console.log(name)
+
+    mail.sendJoinCompEmail(email, name, admin, competitionID)
+}
+
+async function processExistingParticipant(invitedUser, competition){
+    //1. send you've been added email
+    mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
+
+    //2. add player to competition
+    competition.Players.push([invitedUser.name, invitedUser.email, competition.DateObj])
+    competition.markModified('Players')
+
+    //3. add competition to player
+    invitedUser.competitions.push({id: competition.id, name: competition.CompetitionName, admin: false})
+    invitedUser.markModified('competitions')
+    invitedUser.save()
+
+    //4. return competition object
+    return competition
+}
 
 
 //takes the list of players in a competition and removes duplicate users
