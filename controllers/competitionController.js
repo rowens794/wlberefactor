@@ -211,7 +211,7 @@ exports.createCompetitionRefac = async function (req, res) {
 
     //1. verify the user token and store the ID'd user as the admin
     var adminUser = null
-    const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY); 
+    const userTokenID = await jwt.verify(req.body.token, process.env.JWT_KEY); 
     await User.findById(userTokenID.userID, function(err, user){
         if (err) {res.json({"status":"failed"})}
         else{ adminUser = user }
@@ -221,16 +221,16 @@ exports.createCompetitionRefac = async function (req, res) {
     var competitionDoc = await CreateCompetitionDocument(req.body.competitionInfo, adminUser)
 
     //3. Clean the list of invited participants
-    var invitedPlayers = cleanInvitedParticipants(req.body.competitionInfo.Players, adminUser)
+    var invitedPlayers = await cleanInvitedParticipants(req.body.competitionInfo.Players, adminUser)
 
     //4. Notify or Invite players that were selected to join the competition
     competitionDoc = await inviteeNotification(invitedPlayers, competitionDoc)
 
     //5. Add the competition to the Admin user's DB document
-    addCompToAdmin(adminUser.id, competitionDoc.id, competitionDoc.CompetitionName)
+    await addCompToAdmin(adminUser.id, competitionDoc.id, competitionDoc.CompetitionName)
 
     //6. Save the Competition and Send success response
-    competitionDoc.save()
+    await competitionDoc.save()
     res.json({"status":"success"})
 }
 
@@ -309,17 +309,6 @@ function verifyAuthority(userDocument, competitionID){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
 function addCompToAdmin(adminID, compID, compName){
     console.log("---------addCompToAdmin----------")
     User.findById(adminID, function (err, user){
@@ -349,16 +338,16 @@ async function inviteeNotification(invitedPlayers, competition){
         
         //if user exists: add user to the competition, save the competition to the users DB Object and notify user by email
         if(invitedUser){
-            mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
-            competition.Players.push([invitedUser.name, invitedUser.email, competition.DateObj])
-            competition.markModified('Players')
-            invitedUser.competitions.push({id: competition.id, name: competition.CompetitionName, admin: false})
-            invitedUser.markModified('competitions')
-            invitedUser.save()
+            await mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
+            await competition.Players.push([invitedUser.name, invitedUser.email, competition.DateObj])
+            await competition.markModified('Players')
+            await invitedUser.competitions.push({id: competition.id, name: competition.CompetitionName, admin: false})
+            await invitedUser.markModified('competitions')
+            await invitedUser.save()
         }
         //if no user exists then send an invitation to the user
         else{
-            mail.sendJoinCompEmail(invitedPlayers[i][1], invitedPlayers[i][0], competition.Players[0][0], competition.id)
+            await mail.sendJoinCompEmail(invitedPlayers[i][1], invitedPlayers[i][0], competition.Players[0][0], competition.id)
         }
     }
     return competition
