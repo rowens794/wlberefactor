@@ -36,7 +36,7 @@ exports.userRegistration = async function (req, res) {
             }
             
             //once authenticated send user to registration recieved page
-            res.redirect(rootURL + 'registrationrecieved')
+            res.status(301).redirect(rootURL + 'registrationrecieved')
         });
     });
 };
