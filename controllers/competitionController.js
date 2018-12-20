@@ -146,8 +146,8 @@ async function inviteeNotification(invitedPlayers, competition){
             }
             else if(participant){ 
                 console.log('found user')
-                //invitedUser = user[0] 
-                // competition = await processExistingParticipant(user, competition)
+                console.log(participant.email)
+                console.log(participant.name)
 
                 //1. send join notification
                 await mail.sendYouveBeenAddedEmail(participant.email, participant.name, competition.Players[0][0])
@@ -174,32 +174,6 @@ async function inviteeNotification(invitedPlayers, competition){
 
     return competition
 }
-
-// async function processNewParticipant(email, name, admin, competitionID){
-//     console.log('----------processNewParticipant----------')
-//     console.log(`email: ${email} | name: ${name} | admin: ${admin} | competitionID: ${competitionID}`)
-//     await mail.sendJoinCompEmail(email, name, admin, competitionID)
-//     return true
-// }
-
-// async function processExistingParticipant(invitedUser, competition){
-//     console.log('----------processExistingParticipant----------')
-//     console.log(`invitedUser: ${invitedUser}`)
-//     //1. send you've been added email
-//     await mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
-
-//     //2. add player to competition
-//     await competition.Players.push([invitedUser.name, invitedUser.email, competition.DateObj])
-//     await competition.markModified('Players')
-
-//     //3. add competition to player
-//     await invitedUser.competitions.push({id: competition.id, name: competition.CompetitionName, admin: false})
-//     await invitedUser.markModified('competitions')
-//     await invitedUser.save()
-
-//     //4. return competition object
-//     return competition
-// }
 
 
 //takes the list of players in a competition and removes duplicate users
