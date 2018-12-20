@@ -144,7 +144,7 @@ async function inviteeNotification(invitedPlayers, competition){
             if (err) {
                 console.log(err)
             }
-            else if(participant){ 
+            else if(participant != []){ 
                 console.log('found user')
                 console.log(participant)
                 console.log(participant[0].email)
@@ -168,6 +168,8 @@ async function inviteeNotification(invitedPlayers, competition){
             }
             else{
                 console.log('new user')
+                console.log(invitedPlayer[1])
+                console.log(invitedPlayer[0])
                 await mail.sendJoinCompEmail(invitedPlayer[1], invitedPlayer[0], competition.Players[0][0], competition.id)
             }
         })
