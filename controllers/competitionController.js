@@ -140,20 +140,20 @@ async function inviteeNotification(invitedPlayers, competition){
     invitedPlayers.forEach(async function(invitedPlayer, index){
         console.log(`${index}: ${invitedPlayer}`)
 
-        await User.find({email: invitedPlayer[1]}, async function(err, user){
+        await User.find({email: invitedPlayer[1]}, async function(err, participant){
             if (err) {
                 console.log(err)
             }
-            else if(user){ 
+            else if(participant){ 
                 console.log('found user')
                 //invitedUser = user[0] 
                 // competition = await processExistingParticipant(user, competition)
 
                 //1. send join notification
-                await mail.sendYouveBeenAddedEmail(user.email, user.name, competition.Players[0][0])
+                await mail.sendYouveBeenAddedEmail(participant.email, participant.name, competition.Players[0][0])
 
                 //2. add player to competition
-                await competition.Players.push([user.name, user.email, competition.DateObj])
+                await competition.Players.push([participant.name, participant.email, competition.DateObj])
                 await competition.markModified('Players')
 
                 //3. add competition to player
