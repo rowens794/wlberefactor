@@ -144,7 +144,7 @@ async function inviteeNotification(invitedPlayers, competition){
             if (err) {
                 console.log(err)
             }
-            else if(participant != []){ 
+            else if(participant[0]){ 
                 console.log('found user')
                 console.log(participant)
                 console.log(participant[0].email)
