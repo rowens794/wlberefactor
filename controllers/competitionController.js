@@ -207,6 +207,7 @@ exports.addUser = async function (req, res) {
 }
 
 exports.createCompetitionRefac = async function (req, res) {
+    console.log("---------createCompetitionRefac----------")
 
     //1. verify the user token and store the ID'd user as the admin
     var adminUser = null
@@ -235,6 +236,7 @@ exports.createCompetitionRefac = async function (req, res) {
 
 
 exports.addUserRefac = async function (req, res) {
+    console.log("---------addUserRefac----------")
 
     //collect initial data
     const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);  
@@ -296,6 +298,7 @@ exports.addUserRefac = async function (req, res) {
 
 
 function verifyAuthority(userDocument, competitionID){
+    console.log("---------verifyAuthority----------")
     var hasAuthority = false
     for(i=0; i<userDocument.competitions.length; i++){
         if(userDocument.competitions[i].id === competitionID && userDocument.competitions[i].admin === true){
@@ -318,6 +321,7 @@ function verifyAuthority(userDocument, competitionID){
 
 
 function addCompToAdmin(adminID, compID, compName){
+    console.log("---------addCompToAdmin----------")
     User.findById(adminID, function (err, user){
         if(err){console.log('error finding admin')}
         else{
@@ -329,6 +333,7 @@ function addCompToAdmin(adminID, compID, compName){
 }
 
 async function inviteeNotification(invitedPlayers, competition){
+    console.log("---------inviteeNotification----------")
     var invitedPlayers = invitedPlayers
 
     //for each invited player determine if that player exists in the DB
@@ -363,7 +368,7 @@ async function inviteeNotification(invitedPlayers, competition){
 
 //takes the list of players in a competition and removes duplicate users
 function cleanInvitedParticipants(invitedPlayers, adminUser){
-
+    console.log("---------cleanInvitedParticipants----------")
     adminEmail = adminUser.email
 
     //remove admin from invitedPlayers list if they were accidentally added
@@ -388,7 +393,7 @@ function cleanInvitedParticipants(invitedPlayers, adminUser){
 
 
 function CreateCompetitionDocument(competitionDetails, adminUser){
-
+    console.log("---------CreateCompetitionDocument----------")
     //1.1 set start date variable
     let x = moment(new Date(competitionDetails.StartDate));
 
