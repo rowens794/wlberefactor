@@ -147,14 +147,14 @@ async function inviteeNotification(invitedPlayers, competition){
             else if(participant){ 
                 console.log('found user')
                 console.log(participant)
-                console.log(participant.email)
-                console.log(participant.name)
+                console.log(participant[0].email)
+                console.log(participant[0].name)
 
                 //1. send join notification
-                await mail.sendYouveBeenAddedEmail(participant.email, participant.name, competition.Players[0][0])
+                await mail.sendYouveBeenAddedEmail(participant[0].email, participant[0].name, competition.Players[0][0])
 
                 //2. add player to competition
-                await competition.Players.push([participant.name, participant.email, competition.DateObj])
+                await competition.Players.push([participant[0].name, participant[0].email, competition.DateObj])
                 await competition.markModified('Players')
 
                 //3. add competition to player
