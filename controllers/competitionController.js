@@ -373,6 +373,7 @@ async function processNewParticipant(email, name, admin, competitionID){
 }
 
 async function processExistingParticipant(invitedUser, competition){
+    console.log(invitedUser)
     //1. send you've been added email
     mail.sendYouveBeenAddedEmail(invitedUser.email, invitedUser.name, competition.Players[0][0])
 
