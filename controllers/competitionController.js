@@ -328,7 +328,7 @@ async function inviteeNotification(invitedPlayers, competition){
 
     //for each invited player determine if that player exists in the DB
     for(i=0; i<invitedPlayers.length; i++){
-        await User.find({email: invitedPlayers[i][1]}, function(err, user){
+        await User.find({email: invitedPlayers[i][1]}, async function(err, user){
             if (err) {
                 console.log(err)
             }
