@@ -70,6 +70,10 @@ exports.sendYouveBeenAddedEmail = function (email, name, invitor) {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     console.log('----------mailController.sendYouveBeenAddedEmail-----------')
 
+    console.log(email)
+    console.log(name)
+    console.log(invitor)
+
     const msg = {
         to: email,
         from: 'Ryan@bigloosers.com',
