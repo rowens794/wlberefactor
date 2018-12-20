@@ -158,9 +158,9 @@ async function inviteeNotification(invitedPlayers, competition){
                 await competition.markModified('Players')
 
                 //3. add competition to player
-                await invitedUser.competitions.push({id: competition.id, name: competition.CompetitionName, admin: false})
-                await invitedUser.markModified('competitions')
-                await invitedUser.save()
+                await participant.competitions.push({id: competition.id, name: competition.CompetitionName, admin: false})
+                await participant.markModified('competitions')
+                await participant.save()
 
                 //4. return competition object
                 return competition
