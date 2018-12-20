@@ -335,7 +335,7 @@ async function inviteeNotification(invitedPlayers, competition){
             else if(user){ 
                 console.log('found user')
                 //invitedUser = user[0] 
-                competition = await processExistingParticipant(invitedUser, competition)
+                competition = await processExistingParticipant(user, competition)
 
             }
             else{
