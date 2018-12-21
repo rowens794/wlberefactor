@@ -72,7 +72,10 @@ function prepEmailNotifications(sortedUsers, compInfo, compName, timePeriod){
         let userIndex = l
         switch(timePeriod){
             case ('one'):
-                console.log('one')
+                console.log('----------one-------------')
+                console.log(sortedUsers)
+                console.log(compInfo)
+                console.log('-------------------------------')
                 mail.sendWeeklyAnnouncement(userIndex, sortedUsers, compInfo, compName, 'weeklyLoss')
                 break
             case ('two'):
