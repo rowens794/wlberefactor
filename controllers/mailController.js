@@ -117,6 +117,28 @@ exports.resetPasswordEmail = function (email, link) {
             console.log(email)
         }
     });
+
+    //template access
+    const msg = {
+        to: email,
+        from: 'PasswordReset@flippingthescales.com',
+        subject: `Reset your Password`,
+        text: `Reset your Password`,
+        templateId: 'd-0366abeca49d48c5b1981e66853c30e9',
+        dynamic_template_data: {
+                link: link,
+                email: email
+            }
+        }
+    
+        sgMail.send(msg, (error, msg) => {
+        if(error){
+            console.log(error)
+        }else{
+            console.log('Password reset sent successfully to ')
+            console.log(email)
+        }
+    });
 }
 
 
