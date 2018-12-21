@@ -20,6 +20,8 @@ exports.createCompetitionRefac = async function (req, res) {
         if (err) {res.json({"status":"failed"})}
         else{ adminUser = user }
     })
+    console.log('------------------')
+    console.log(adminUser)
 
     //2. Create the competition document
     var competitionDoc = await CreateCompetitionDocument(req.body.competitionInfo, adminUser)

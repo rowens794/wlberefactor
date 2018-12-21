@@ -25,6 +25,7 @@ router.get('/', function(req, res, next) {
 //create user account
 router.post('/registration', function(req, res, next) {
 	//add user form validation -- wes bos video
+	console.log('Start--------------------------------')
 	userController.userValidation(req, res, next);
 	userController.userRegistration(req, res);
 });
@@ -33,7 +34,6 @@ router.get('/userVerification/:userID/:verificationToken', function(req, res, ne
 
 	User.findById(req.params.userID, function (err, user) {
 		if (err) {
-			console.log('error verifying user')
 			res.redirect(rootURL+'error');
 		}else{
 			//if users verification code matches the one originally assigned then set user to verified
@@ -46,13 +46,11 @@ router.get('/userVerification/:userID/:verificationToken', function(req, res, ne
 
 
 router.post('/signin', function(req, res, next) {
-	console.log(req.body)
 
 	passport.authenticate('local', function(err, user, info) {
 		if (err) { return next(err)}
 
 		if (!user) { 
-			console.log(info)
 			return res.json(JSON.stringify({login: 'failed'}));
 		}
 
@@ -177,6 +175,8 @@ router.post('/addUserToComp', function(req, res, next) {
 
 router.post('/registerfrominvite/:compID', function(req, res, next) {
 	//create the competition and respond back to front end
+	console.log('1. Start--------------------------------')
+	userController.userValidation(req, res, next);
 	userController.signUpToCompetition(req, res)
 });
 

@@ -17,27 +17,25 @@ exports.userRegistration = async function (req, res) {
             verified: false, 
             verificationString: md5(Math.random()*100000000)
         },  req.body.password, function(err, user) {
+
         if (err) { 
-            console.log('error registering user from signup form')  
-            console.log(err) 
+            res.json({message: 'A user with the given username is already registered'})
+
+        } else{
+            //send a welcome email with verification string to new user
+            mail.sendWelcomeEmail(user.email, user._id, user.name, user.verificationString)
+    
+            //authenticate the user
+            var authenticate = User.authenticate();
+            authenticate('username', 'password', function(err, result) {
+                if (err) { 
+                    console.log(err)
+                }else{
+                    //once authenticated send user to registration recieved page
+                    res.json({message: 'success'})
+                }
+            });
         }
-
-
-        //send a welcome email with verification string to new user
-        mail.sendWelcomeEmail(user.email, user._id, user.name, user.verificationString)
-        console.log('registration email sent')
-
-        //authenticate the user
-        var authenticate = User.authenticate();
-        authenticate('username', 'password', function(err, result) {
-            if (err) { 
-                console.log('bottom error')  
-                console.log(err)
-            }
-            
-            //once authenticated send user to registration recieved page
-            res.status(301).redirect(rootURL + 'registrationrecieved')
-        });
     });
 };
 
@@ -47,14 +45,14 @@ exports.userValidation = function (req, res, next) {
     
     const errors = req.validationErrors();
     if (errors){
-        console.log(errors)
-        res.redirect(rootURL+'register', errors);
+        res.json({message: errors.msg})
+
+    }else{
+        next
     }
 };
 
 exports.signUpToCompetition = async function (req, res) {
-
-    console.log(req.body)
 
     //create the new user
     await User.register(
@@ -69,45 +67,44 @@ exports.signUpToCompetition = async function (req, res) {
         //log any errors that occur registering the user
         if (err) { 
             console.log('error registering user from invitation')  
-            console.log(err) 
-        }
+            res.json({message: 'A user with the given username is already registered'})
+        }else{
 
-        //send a welcome email with verification string to new user
-        mail.sendWelcomeEmail(user.email, user._id, user.name, user.verificationString, req.body.comp_id)
-
-        //authenticate the user
-        var authenticate = User.authenticate();
-        authenticate('username', 'password', function(err, result) {
-            if (err) { 
-                console.log('an error occured authenticating the user')
-                console.log(err)
-                res.redirect(rootURL)
-            }
-
-            //-----Once the user has been registered and authenticated then add the user to the competition
-            Competition.findById(req.body.comp_id, async function (err, competition) {
-                if (err) {
-                    console.log('an error occured finding the competition')
-                    console.log(err)
-                    res.redirect(rootURL)
-                }else{
-                    competition.Players.push([user.name, user.email, competition.DateObj ])
-                    competition.markModified('Players');
-                    competition.save()
-
-                    //ALSO **IMPORTANT** Add the competition to the user
-                    user.competitions.push({
-                        "id": competition.id,
-                        "name": competition.CompetitionName,
-                        "admin": false
-                    })
-                    user.markModified('competitions')
-                    user.save()
-
-                    //once authenticated send user to registration recieved page
-                    res.redirect(rootURL + 'registrationrecieved')
+            //authenticate the user
+            var authenticate = User.authenticate();
+            authenticate('username', 'password', function(err, result) {
+                if (err) { 
+                    console.log('an error occured authenticating the user')
+                    res.json({message: 'something broke authenticating you'})
                 }
+    
+                //-----Once the user has been registered and authenticated then add the user to the competition
+                Competition.findById(req.body.comp_id, async function (err, competition) {
+                    if (err) {
+                        console.log('an error occured finding the competition')
+                        res.json({message: 'something broke finding the competition you were invited to'})
+                    }else{
+                        competition.Players.push([user.name, user.email, competition.DateObj ])
+                        competition.markModified('Players');
+                        competition.save()
+    
+                        //ALSO **IMPORTANT** Add the competition to the user
+                        user.competitions.push({
+                            "id": competition.id,
+                            "name": competition.CompetitionName,
+                            "admin": false
+                        })
+                        user.markModified('competitions')
+                        user.save()
+
+                        //send a welcome email with verification string to new user
+                        mail.sendWelcomeEmail(user.email, user._id, user.name, user.verificationString, req.body.comp_id)
+    
+                        //once authenticated send user to registration recieved page
+                        res.json({message: 'success'})
+                    }
+                })
             })
-        })
+        }
     })
 }
