@@ -86,7 +86,7 @@ exports.addUserRefac = async function (req, res) {
             competitionDoc.save()
             newUser.markModified('competitions')
             newUser.save()
-            mail.sendYouveBeenAddedEmail(newUser.email, newUser.name, adminUser.name)
+            mail.sendYouveBeenAddedEmail(newUser.email, newUser.name, adminUser.name, competitionDoc.CompetitionName)
             response = {"status":"success"}
         }else{
             response = {"status":"user alread enrolled"}
@@ -151,7 +151,7 @@ async function inviteeNotification(invitedPlayers, competition){
                 console.log(participant[0].name)
 
                 //1. send join notification
-                await mail.sendYouveBeenAddedEmail(participant[0].email, participant[0].name, competition.Players[0][0])
+                await mail.sendYouveBeenAddedEmail(participant[0].email, participant[0].name, competition.Players[0][0], competition.CompetitionName)
 
                 //2. add player to competition
                 await competition.Players.push([participant[0].name, participant[0].email, competition.DateObj])

@@ -64,29 +64,32 @@ exports.sendJoinCompEmail = function (email, name, invitor, competitionID) {
 
 }
 
-exports.sendYouveBeenAddedEmail = async function (email, name, invitor) {
+exports.sendYouveBeenAddedEmail = async function (email, name, invitor, competitionName) {
     // using SendGrid's v3 Node.js Library
     // https://github.com/sendgrid/sendgrid-nodejs
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     console.log('----------mailController.sendYouveBeenAddedEmail-----------')
 
-    console.log(email)
-    console.log(name)
-    console.log(invitor)
-
+    //template access
     const msg = {
         to: email,
-        from: 'Ryan@bigloosers.com',
+        from: 'Ryan@flippingthescales.com',
         subject: `${invitor} has added you to a weightloss competition`,
-        text: `Hi ${name}, ${invitor} has added you to a weightloss competition.  You don't need to do anything else to join, simply log-in to your account at ${rootURL} to begin logging your weighins`,
-        html: `<strong>You've been Invited to a Weightloss Competition</strong><br /><p>Hi ${name}, ${invitor} has added you to a weightloss competition. To play, simply log into your account at <a href=${rootURL}>${rootURL}</a> and log your weight.</p>`,
-    };
-
-    await sgMail.send(msg, (error, msg) => {
+        text: `${invitor} has added you to a weightloss competition`,
+        templateId: 'd-e303a08b2c1f490eb6c8044fb609a55d',
+        dynamic_template_data: {
+                name: name,
+                invitor: invitor,
+                email: email,
+                competitionName: competitionName 
+            }
+        }
+    
+        sgMail.send(msg, (error, msg) => {
         if(error){
-            console.log('0')
+            console.log(error)
         }else{
-            console.log('youveBeenAddedEmail message sent successfully to ')
+            console.log('sendJoinCompEmail message sent successfully to ')
             console.log(email)
         }
     });
