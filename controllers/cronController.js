@@ -17,50 +17,47 @@ exports.sendReviewEmails = async function (req, res){
 
     //collect all competitions
 	Competition.find({}, async function(err, competitions){
-		for(let i=0; i<competitions.length; i++){
-			let competition = competitions[i]
-			
+        competitions.forEach( async function(competition, index){
             //1. collect meaningful dates for the competition
 			let compInfo = await collectCompetitionInfo(competition)
 
             //2. determine if today is a day that emails should be sent
             var refDate = moment(new Date()).subtract(1,'days').format('M/D/YYYY')
             var emailDay = compInfo.weekEndDates.indexOf(refDate)
-            if (emailDay === -1) { continue } //if this is not an email day then break the loop for this competition
 
-            //3. get a list of all of the users in the competition
-            var competitionUserInfo = await userInfo(competition, compInfo, refDate)
+            //if (emailDay !== -1 && emailDay !== 0) { //if this is not an email day then skip this competition
+            if (competition.CompetitionName === 'A bit Delayed') { //temporary if to select competition for testing
+                
+                
+                //3. get a list of all of the users in the competition
+                var competitionUserInfo = await userInfo(competition, compInfo, refDate)
+    
+                //4. otherwise send standard 1 week update
 
-            //4. send email updates split into sub-groups
-
-            //4.0 skip sending emails to competitions that are on week 0
-            if (emailDay = 0) { continue }
-
-            //4.1 if it's the last day of the competition then send winner announcement
-            if (refDate === compInfo.competitionEndDate){
-                console.log('last day of competition')
-                let sortedUsers = sortCompetitionUserInfo(competitionUserInfo, 'total')
-                mail.sendWinnerAnnouncement(sortedUsers, compInfo)
-                continue //break loop
-            }
-
-            //4.2 if it's an Interim Prize day then announce the winner
-            if (compInfo.interimPrizeAwardDates.indexOf(refDate) !== -1){
-                console.log('interim prize announcement')
-                if(compInfo.interPrizeOffset === 14){
-                    let sortedUsers = sortCompetitionUserInfo(competitionUserInfo, 'two')
-                    mail.sendInterimAnnouncement(sortedUsers, compInfo)
-                }else{
-                    let sortedUsers = sortCompetitionUserInfo(competitionUserInfo, 'four')
-                    mail.sendInterimAnnouncement(sortedUsers, compInfo)
+                
+                //if yesterday = competition end date send winner announcement
+                if (refDate === competition.competitionEndDate){
+                    let sortedUsers = await sortCompetitionUserInfo(competitionUserInfo, 'total')
+                    prepEmailNotifications(sortedUsers, compInfo, competition.CompetitionName, 'total')
                 }
-                continue //break loop
-            }
-
-            //4.3 otherwise send standard 1 week update
-            let sortedUsers = sortCompetitionUserInfo(competitionUserInfo, 'one')
-            prepEmailNotifications(sortedUsers, compInfo, competition.CompetitionName, 'one')
-        }
+                // if yesterday = interim award date then figure out if it's 2 or 4 week lookback
+                else if(compInfo.interimPrizeAwardDates.indexOf(refDate) >= 0){
+                    if(compInfo.interPrizeOffset == 14){
+                        let sortedUsers = await sortCompetitionUserInfo(competitionUserInfo, 'two')
+                        prepEmailNotifications(sortedUsers, compInfo, competition.CompetitionName, 'two')
+                    }
+                    else{
+                        let sortedUsers = await sortCompetitionUserInfo(competitionUserInfo, 'four')
+                        prepEmailNotifications(sortedUsers, compInfo, competition.CompetitionName, 'four')
+                    }
+                }
+                // if yesterday is not equal to competition end date or interim prize date then send one week lookback
+                else{
+                    let sortedUsers = await sortCompetitionUserInfo(competitionUserInfo, 'one')
+                    prepEmailNotifications(sortedUsers, compInfo, competition.CompetitionName, 'one')
+                }
+            } 
+        })
 	})
 
     res.json({status:'success'})
@@ -68,30 +65,48 @@ exports.sendReviewEmails = async function (req, res){
 
 function prepEmailNotifications(sortedUsers, compInfo, compName, timePeriod){
 
-    for(let l=0; l<sortedUsers.length; l++){
-        let userIndex = l
+    sortedUsers.forEach(function(user) {
         switch(timePeriod){
             case ('one'):
-                console.log('----------one-------------')
-                console.log(sortedUsers)
-                console.log(compInfo)
-                console.log('-------------------------------')
-                mail.sendWeeklyAnnouncement(userIndex, sortedUsers, compInfo, compName, 'weeklyLoss')
+                console.log('prepEmailNotifications: one')
+                mail.sendWeeklyAnnouncement(user, sortedUsers, compInfo, compName, 'weeklyLoss')
                 break
             case ('two'):
-                console.log('two')
-                mail.sendInterimAnnouncement(userIndex, sortedUsers, compInfo, compName, 'two')
+                console.log('prepEmailNotifications: two')
+                mail.sendInterimAnnouncement(user, sortedUsers, compInfo, compName, 'two')
                 break
             case ('four'):
-                console.log('four')
-                mail.sendInterimAnnouncement(userIndex, sortedUsers, compInfo, compName, 'four')
+                console.log('prepEmailNotifications: four')
+                mail.sendInterimAnnouncement(user, sortedUsers, compInfo, compName, 'four')
                 break
             case ('total'):
-                console.log('total')
-                mail.sendWinnerAnnouncement(userIndex, sortedUsers, compInfo, compName, 'total')
+                console.log('prepEmailNotifications: total')
+                mail.sendWinnerAnnouncement(user, sortedUsers, compInfo, compName, 'total')
                 break
         }
-    }
+    });
+
+    // for(let l=0; l<sortedUsers.length; l++){
+    //     let userIndex = l
+    //     switch(timePeriod){
+    //         case ('one'):
+    //             console.log('prepEmailNotifications: one')
+    //             mail.sendWeeklyAnnouncement(userIndex, sortedUsers, compInfo, compName, 'weeklyLoss')
+    //             break
+    //         case ('two'):
+    //             console.log('prepEmailNotifications: two')
+    //             mail.sendInterimAnnouncement(userIndex, sortedUsers, compInfo, compName, 'two')
+    //             break
+    //         case ('four'):
+    //             console.log('prepEmailNotifications: four')
+    //             mail.sendInterimAnnouncement(userIndex, sortedUsers, compInfo, compName, 'four')
+    //             break
+    //         case ('total'):
+    //             console.log('prepEmailNotifications: total')
+    //             mail.sendWinnerAnnouncement(userIndex, sortedUsers, compInfo, compName, 'total')
+    //             break
+    //     }
+    // }
 }
 
 function sortCompetitionUserInfo(userInfo, period){

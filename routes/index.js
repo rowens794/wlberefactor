@@ -50,7 +50,7 @@ router.post('/signin', function(req, res, next) {
 	passport.authenticate('local', function(err, user, info) {
 		if (err) { return next(err)}
 
-		if (!user) { 
+		if (!user) {
 			return res.json(JSON.stringify({login: 'failed'}));
 		}
 
