@@ -20,22 +20,18 @@ exports.createCompetitionRefac = async function (req, res) {
         if (err) {res.json({"status":"failed"})}
         else{ adminUser = user }
     })
-    console.log('------------------')
-    console.log(adminUser)
 
     //2. Create the competition document
     var competitionDoc = await CreateCompetitionDocument(req.body.competitionInfo, adminUser)
 
     //3. Clean the list of invited participants
     var invitedPlayers = await cleanInvitedParticipants(req.body.competitionInfo.Players, adminUser)
-    console.log(invitedPlayers)
 
     //4. Notify or Invite players that were selected to join the competition
     competitionDoc = await inviteeNotification(invitedPlayers, competitionDoc)
 
     //5. Add the competition to the Admin user's DB document
     let adminDone = await addCompToAdmin(adminUser.id, competitionDoc.id, competitionDoc.CompetitionName)
-    console.log(adminDone)
 
     //6. Save the Competition and Send success response
     await competitionDoc.save()
@@ -81,7 +77,6 @@ exports.addUserRefac = async function (req, res) {
         }
 
         if(!alreadySignedUp){
-            console.log('user exists and is not already enrolled in competition')
             competitionDoc.Players.push([newUser.name, newUser.email, competitionDoc.DateObj]) // add newUser to comp
             newUser.competitions.push({id:competitionDoc.id, name:competitionDoc.competitionName, admin: false})
             competitionDoc.markModified('Players')
@@ -95,7 +90,6 @@ exports.addUserRefac = async function (req, res) {
         }
 
     }else{
-        console.log('no user account')
         mail.sendJoinCompEmail(newUserEmail, newUserName, adminUser.name, competitionDoc.id)
     }
 
@@ -119,7 +113,6 @@ function verifyAuthority(userDocument, competitionID){
 
 async function addCompToAdmin(adminID, compID, compName){
     console.log("---------addCompToAdmin----------")
-    console.log(`adminID: ${adminID} | compID: ${compID} | compName: ${compName}`)
     await User.findById(adminID, async function (err, user){
         if(err){console.log('error finding admin')}
         else{
@@ -136,21 +129,13 @@ async function inviteeNotification(invitedPlayers, competition){
     var invitedPlayers = invitedPlayers
 
     //for each invited player determine if that player exists in the DB
-    console.table(invitedPlayers)
-    console.log("------------begin for loop --------------")
-
     invitedPlayers.forEach(async function(invitedPlayer, index){
-        console.log(`${index}: ${invitedPlayer}`)
 
         await User.find({email: invitedPlayer[1]}, async function(err, participant){
             if (err) {
                 console.log(err)
             }
             else if(participant[0]){ 
-                console.log('found user')
-                console.log(participant)
-                console.log(participant[0].email)
-                console.log(participant[0].name)
 
                 //1. send join notification
                 await mail.sendYouveBeenAddedEmail(participant[0].email, participant[0].name, competition.Players[0][0], competition.CompetitionName)
@@ -169,9 +154,6 @@ async function inviteeNotification(invitedPlayers, competition){
 
             }
             else{
-                console.log('new user')
-                console.log(invitedPlayer[1])
-                console.log(invitedPlayer[0])
                 await mail.sendJoinCompEmail(invitedPlayer[1], invitedPlayer[0], competition.Players[0][0], competition.id)
             }
         })
@@ -201,8 +183,6 @@ function cleanInvitedParticipants(invitedPlayers, adminUser){
             }
         }
     }
-
-    console.table(invitedPlayers)
 
     return invitedPlayers
 }

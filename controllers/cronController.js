@@ -1,16 +1,36 @@
-var express = require('express');
-var router = express.Router(); //routing
-var passport = require('passport')
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
 const Competition = mongoose.model('Competition');
-var normalizeEmail = require('normalize-email')
-var md5 = require('md5');
-const jwt = require('jsonwebtoken');
 const moment = require('moment');
-var normalizeEmail = require('normalize-email')
 
 const mail = require('./mailController');
+
+exports.sendRemindEmails = async function (req, res){
+    //collect all competitions
+	Competition.find({}, async function(err, competitions){
+        competitions.forEach( async function(competition, index){
+
+            comptitionInfo = collectCompetitionInfo(competition)
+
+            //determine if competition has a weighin due today
+            // determine if today is a weekend date
+            if(comptitionInfo.weekEndDates.indexOf(moment(new Date()).format('M/D/YYYY')) >= 0 ){ 
+                
+                //send email reminder to all participants
+                competition.Players.forEach(function(player){
+                    User.findOne({email: player[1]}, function(err, player){
+                        //send reminder email (name | email | comp name | comp ID | player ID)
+                        if (player.emailsEnabled){
+                            mail.sendReminderEmail(player.name, player.email, competition.CompetitionName, competition.id, player.id)}
+                        
+                    })
+                })
+            }
+        })
+    })
+
+    res.json({status:'success'})
+}
 
 
 exports.sendReviewEmails = async function (req, res){
@@ -68,45 +88,23 @@ function prepEmailNotifications(sortedUsers, compInfo, compName, timePeriod){
     sortedUsers.forEach(function(user) {
         switch(timePeriod){
             case ('one'):
-                console.log('prepEmailNotifications: one')
-                mail.sendWeeklyAnnouncement(user, sortedUsers, compInfo, compName, 'weeklyLoss')
+                if(user.emailsEnabled){
+                    mail.sendWeeklyAnnouncement(user, sortedUsers, compInfo, compName, 'weeklyLoss')}
                 break
             case ('two'):
-                console.log('prepEmailNotifications: two')
-                mail.sendInterimAnnouncement(user, sortedUsers, compInfo, compName, 'two')
+                if(user.emailsEnabled){
+                    mail.sendInterimAnnouncement(user, sortedUsers, compInfo, compName, 'two')}
                 break
             case ('four'):
-                console.log('prepEmailNotifications: four')
-                mail.sendInterimAnnouncement(user, sortedUsers, compInfo, compName, 'four')
+                if(user.emailsEnabled){
+                    mail.sendInterimAnnouncement(user, sortedUsers, compInfo, compName, 'four')}
                 break
             case ('total'):
-                console.log('prepEmailNotifications: total')
-                mail.sendWinnerAnnouncement(user, sortedUsers, compInfo, compName, 'total')
+                if(user.emailsEnabled){
+                    mail.sendWinnerAnnouncement(user, sortedUsers, compInfo, compName, 'total')}
                 break
         }
     });
-
-    // for(let l=0; l<sortedUsers.length; l++){
-    //     let userIndex = l
-    //     switch(timePeriod){
-    //         case ('one'):
-    //             console.log('prepEmailNotifications: one')
-    //             mail.sendWeeklyAnnouncement(userIndex, sortedUsers, compInfo, compName, 'weeklyLoss')
-    //             break
-    //         case ('two'):
-    //             console.log('prepEmailNotifications: two')
-    //             mail.sendInterimAnnouncement(userIndex, sortedUsers, compInfo, compName, 'two')
-    //             break
-    //         case ('four'):
-    //             console.log('prepEmailNotifications: four')
-    //             mail.sendInterimAnnouncement(userIndex, sortedUsers, compInfo, compName, 'four')
-    //             break
-    //         case ('total'):
-    //             console.log('prepEmailNotifications: total')
-    //             mail.sendWinnerAnnouncement(userIndex, sortedUsers, compInfo, compName, 'total')
-    //             break
-    //     }
-    // }
 }
 
 function sortCompetitionUserInfo(userInfo, period){

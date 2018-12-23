@@ -23,6 +23,7 @@ var userSchema = new Schema({
         trim: true,
         validate: [validator.isEmail, 'invalid email address'],
         required: 'a valid email address is required' },
+    emailsEnabled: Boolean,
     signUpDate: String,
     competitions: [],
     verified: Boolean,

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
-var passport = require('passport');
+const jwt = require('jsonwebtoken');
 var md5 = require('md5');
 const Competition = mongoose.model('Competition');
 
@@ -15,7 +15,8 @@ exports.userRegistration = async function (req, res) {
             email:req.body.email, 
             name: req.body.name, 
             verified: false, 
-            verificationString: md5(Math.random()*100000000)
+            verificationString: md5(Math.random()*100000000),
+            emailsEnabled: true
         },  req.body.password, function(err, user) {
 
         if (err) { 
@@ -61,7 +62,8 @@ exports.signUpToCompetition = async function (req, res) {
             name: req.body.name, 
             verified: false, 
             verificationString: md5(Math.random()*100000000),
-            competitions: []
+            competitions: [],
+            emailsEnabled: true,
         },  req.body.password, function(err, user) {
 
         //log any errors that occur registering the user
@@ -105,6 +107,26 @@ exports.signUpToCompetition = async function (req, res) {
                     }
                 })
             })
+        }
+    })
+}
+
+exports.changeEmailPref = function(req, res) {
+    console.log(req.body)
+    //1. get the user model from the object
+    console.log('----------changeEmailPref---------------')
+    const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
+    console.log(userTokenID.userID) 
+    User.findById(userTokenID.userID, function(err, user){
+        console.log('insided find by id')
+        if (err) {
+            console.log(err)
+            res.json({"status":"failed"})}
+        else{ 
+            console.log('success')
+            res.json({"status":"success"})
+            user.emailsEnabled = false
+            user.save()
         }
     })
 }

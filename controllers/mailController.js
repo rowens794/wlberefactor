@@ -26,12 +26,11 @@ exports.sendWelcomeEmail = function (email, userID, name, verificationString, co
     
         sgMail.send(msg, (error, msg) => {
         if(error){
-            //console.log(error)
             console.log('-------error hit sendWelcomeEmail------------')
             console.log(error)
         }else{
-            console.log('sendWelcomeEmail message sent successfully to ')
-            console.log(email)
+            //console.log('sendWelcomeEmail message sent successfully to ')
+            //console.log(email)
         }
     });
 }
@@ -61,8 +60,8 @@ exports.sendJoinCompEmail = function (email, name, invitor, competitionID) {
             console.log('-------error hit sendJoinCompEmail------------')
             console.log(error)
         }else{
-            console.log('sendJoinCompEmail message sent successfully to ')
-            console.log(email)
+            //console.log('sendJoinCompEmail message sent successfully to ')
+            //console.log(email)
         }
     });
 
@@ -94,8 +93,8 @@ exports.sendYouveBeenAddedEmail = async function (email, name, invitor, competit
             console.log('-------error hit sendYouveBeenAddedEmail------------')
             console.log(error.response.body)
         }else{
-            console.log('sendJoinCompEmail message sent successfully to ')
-            console.log(email)
+            //console.log('sendJoinCompEmail message sent successfully to ')
+            //console.log(email)
         }
     });
 }
@@ -124,8 +123,8 @@ exports.resetPasswordEmail = function (email, link) {
             console.log('-------error hit resetPasswordEmail------------')
             console.log(error)
         }else{
-            console.log('Password reset sent successfully to ')
-            console.log(email)
+            //console.log('Password reset sent successfully to ')
+            //console.log(email)
         }
     });
 }
@@ -166,8 +165,8 @@ exports.sendWeeklyAnnouncement = function (focusUser, sortedUsers, competitionIn
             console.log('-------error hit sendWeeklyAnnouncement------------')
             console.log(error)
         }else{
-            console.log('sendWeeklyAnnouncement message sent successfully to ')
-            console.log(focusUser.email)
+            //console.log('sendWeeklyAnnouncement message sent successfully to ')
+            //console.log(focusUser.email)
         }
     });
 }
@@ -178,7 +177,6 @@ exports.sendInterimAnnouncement = function (focusUser, sortedUsers, competitionI
     // using SendGrid's v3 Node.js Library
     // https://github.com/sendgrid/sendgrid-nodejs
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    console.log("am here")
 
     //determine if focusUser missed weighin
     let focusUserMissedWeighIn = false
@@ -222,9 +220,8 @@ exports.sendInterimAnnouncement = function (focusUser, sortedUsers, competitionI
             console.log('-------error hit sendInterimAnnouncement------------')
             console.log(error)
         }else{
-            console.log(msg)
-            console.log('sendInterimAnnouncement message sent successfully to ')
-            console.log(focusUser.email)
+            //console.log('sendInterimAnnouncement message sent successfully to ')
+            //console.log(focusUser.email)
         }
     });
 }
@@ -304,8 +301,41 @@ exports.sendWinnerAnnouncement = function (focusUser, sortedUsers, competitionIn
             console.log('-------error hit sendWinnerAnnouncement------------')
             console.log(error)
         }else{
-            console.log('sendWinnerAnnouncement message sent successfully to ')
-            console.log(focusUser.email)
+            //console.log('sendWinnerAnnouncement message sent successfully to ')
+            //console.log(focusUser.email)
+        }
+    });
+}
+
+exports.sendReminderEmail = function(name, email, competitionName, competitionID, userID){
+    // using SendGrid's v3 Node.js Library
+    // https://github.com/sendgrid/sendgrid-nodejs
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log('----------mailController.sendReminderEmail-----------')
+
+    //template access
+    const msg = {
+        to: email,
+        from: 'PasswordReset@flippingthescales.com',
+        subject: `Record Your Weight Today`,
+        text: `Record Your Weight Today`,
+        templateId: 'd-dbcc5b6c08914ede9ba16f0394c2cdb9',
+        dynamic_template_data: {
+                name: name,
+                email: email,
+                competitionName: competitionName,
+                competitionID: competitionID,
+                userID: userID
+            }
+        }
+    
+        sgMail.send(msg, (error, msg) => {
+        if(error){
+            console.log('-------error hit sendReminderEmail------------')
+            console.log(error)
+        }else{
+            //console.log('sendReminderEmail sent successfully to ')
+            //console.log(email)
         }
     });
 }
