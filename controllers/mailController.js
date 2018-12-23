@@ -26,6 +26,8 @@ exports.sendWelcomeEmail = function (email, userID, name, verificationString, co
     
         sgMail.send(msg, (error, msg) => {
         if(error){
+            //console.log(error)
+            console.log('-------error hit sendWelcomeEmail------------')
             console.log(error)
         }else{
             console.log('sendWelcomeEmail message sent successfully to ')
@@ -56,6 +58,7 @@ exports.sendJoinCompEmail = function (email, name, invitor, competitionID) {
     
         sgMail.send(msg, (error, msg) => {
         if(error){
+            console.log('-------error hit sendJoinCompEmail------------')
             console.log(error)
         }else{
             console.log('sendJoinCompEmail message sent successfully to ')
@@ -88,7 +91,8 @@ exports.sendYouveBeenAddedEmail = async function (email, name, invitor, competit
     
         sgMail.send(msg, (error, msg) => {
         if(error){
-            console.log(error)
+            console.log('-------error hit sendYouveBeenAddedEmail------------')
+            console.log(error.response.body)
         }else{
             console.log('sendJoinCompEmail message sent successfully to ')
             console.log(email)
@@ -117,6 +121,7 @@ exports.resetPasswordEmail = function (email, link) {
     
         sgMail.send(msg, (error, msg) => {
         if(error){
+            console.log('-------error hit resetPasswordEmail------------')
             console.log(error)
         }else{
             console.log('Password reset sent successfully to ')
@@ -133,18 +138,16 @@ exports.sendWeeklyAnnouncement = function (focusUser, sortedUsers, competitionIn
 
     //determine if focusUser missed weighin
     let focusUserMissedWeighIn = false
-    if(focusUser.email == sortedUsers[0].email){focusUserMissedWeighIn = true}
+    if(focusUser[lookback] == 'N/A'){focusUserMissedWeighIn = true}
 
     //determine if focusUser missed weighin
     let focusUserIsLeader = false
-    if(focusUser[lookback] == 'N/A'){focusUserIsLeader = true}
+    if(focusUser.email == sortedUsers[0].email){focusUserIsLeader = true}
 
     //template access
     const msg = {
         to: focusUser.email,
         from: 'weekly-updates@flippingthescales.com',
-        subject: ``,
-        text: ``,
         templateId: 'd-1cb67f200cc345a09251588cfc319eaf',
         dynamic_template_data: {
                 focusUser: focusUser,
@@ -160,69 +163,148 @@ exports.sendWeeklyAnnouncement = function (focusUser, sortedUsers, competitionIn
     
         sgMail.send(msg, (error, msg) => {
         if(error){
+            console.log('-------error hit sendWeeklyAnnouncement------------')
             console.log(error)
         }else{
-            console.log('sendJoinCompEmail message sent successfully to ')
-            console.log(email)
+            console.log('sendWeeklyAnnouncement message sent successfully to ')
+            console.log(focusUser.email)
         }
     });
 }
 
 
 exports.sendInterimAnnouncement = function (focusUser, sortedUsers, competitionInfo, competitionName, lookback) {
+
     // using SendGrid's v3 Node.js Library
     // https://github.com/sendgrid/sendgrid-nodejs
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    var leaderBoard = sortedUsers.map(user => {
-        return `<li>${user.name} - ${user[[lookback]]} - ${user.totalLoss} </li>`
-    })
-    leaderBoard = leaderBoard.join('')
+    console.log("am here")
 
+    //determine if focusUser missed weighin
+    let focusUserMissedWeighIn = false
+    if(focusUser[lookback] == 'N/A'){focusUserMissedWeighIn = true}
+
+    //determine if focusUser missed weighin
+    let focusUserIsLeader = false
+    if(focusUser.email == sortedUsers[0].email){focusUserIsLeader = true}
+
+    //set the lookup string
+    let lookupString = 'twoWeekLoss'
+    let lookbackString = '2 weeks'
+    if (competitionInfo.interPrizeOffset == 28){lookupString = 'fourWeekLoss'; lookbackString = '4 weeks'}
+
+    let participantPeriodLosses = []
+    sortedUsers.forEach(function(user){
+        participantPeriodLosses.push({name: user.name, periodLoss: user[lookupString], totalLoss: user.totalLoss})
+    })
+    
+    //template access
     const msg = {
         to: focusUser.email,
-        from: 'Ryan@bigloosers.com',
-        subject: `${competitionName}: Congrats to ${sortedUsers[0].name}`,
-
-        text: `Your percentage weight change for the period was ${focusUser[lookback]} and your total percentage weight change is ${focusUser.totalLoss}.  Keep working hard, you have until ${competitionInfo.competitionEndDate} to lose as much weight as you can.  ${sortedUsers[0].name} has been awarded $${competitionInfo.interPrize} for losing the highest percentage during the current period.`,
-        
-        html: `${competitionName}: Congrats to ${sortedUsers[0].name}</strong><br /><p>Hi ${focusUser.name}, <br /> <br /> Your percentage weight change for the period was ${focusUser[lookback]} and your total percentage weight change is ${focusUser.totalLoss}.  Keep working hard, you have until ${competitionInfo.competitionEndDate} to lose as much weight as you can.  ${sortedUsers[0].name} has been awarded $${competitionInfo.interPrize} for losing the highest percentage during the current period.</p><ol>${leaderBoard}</ol>`,
-    };
-
-    sgMail.send(msg, (error) => {
+        from: 'weekly-updates@flippingthescales.com',
+        templateId: 'd-762859d018464680b41e69cd29af031f',
+        dynamic_template_data: {
+                focusUser: focusUser,
+                sortedUsers: sortedUsers,
+                competitionInfo: competitionInfo,
+                competitionName: competitionName,
+                lookback: lookbackString,
+                periodEnd: moment(new Date()).format('M/D/YY'),
+                focusUserMissedWeighIn: focusUserMissedWeighIn,
+                focusUserIsLeader: focusUserIsLeader,
+                winner: {name: sortedUsers[0].name, periodLoss: sortedUsers[0][lookupString]},
+                participantPeriodLosses: participantPeriodLosses
+            }
+        }
+    
+        sgMail.send(msg, (error, msg) => {
         if(error){
-            console.log('0')
+            console.log('-------error hit sendInterimAnnouncement------------')
+            console.log(error)
         }else{
-            console.log('weekly email sent successfully to ')
-            console.log(sortedUsers[index].email)
+            console.log(msg)
+            console.log('sendInterimAnnouncement message sent successfully to ')
+            console.log(focusUser.email)
         }
     });
 }
 
 
 exports.sendWinnerAnnouncement = function (focusUser, sortedUsers, competitionInfo, competitionName, lookback) {
-    // using SendGrid's v3 Node.js Library
+// using SendGrid's v3 Node.js Library
     // https://github.com/sendgrid/sendgrid-nodejs
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    var leaderBoard = sortedUsers.map(user => {
-        return `<li>${user.name} - ${user[[lookback]]} - ${user.totalLoss} </li>`
-    })
-    leaderBoard = leaderBoard.join('')
 
+    //determine if focusUser missed weighin
+    let focusUserMissedWeighIn = false
+    if(focusUser[lookback] == 'N/A'){focusUserMissedWeighIn = true}
+
+    //determine if focusUser missed weighin
+    let focusUserIsLeader = false
+    if(focusUser.email == sortedUsers[0].email){focusUserIsLeader = true}
+
+    //set object for top 3 placements
+    let winnersObj = {  first:  {   exists: true,
+                                    name: sortedUsers[0].name,
+                                    totalLoss: sortedUsers[0].totalLoss,
+                                    prize: competitionInfo.grandPrizes[0]}}
+    winnersObj.second = {}
+    winnersObj.third = {}
+
+    if(competitionInfo.grandPrizes.length > 1){
+        winnersObj.second.exists = true
+        winnersObj.second.name = sortedUsers[1].name
+        winnersObj.second.totalLoss = sortedUsers[1].totalLoss,
+        winnersObj.second.prize = competitionInfo.grandPrizes[1]
+    }else{
+        winnersObj.second.exists = false
+        winnersObj.second.name = null
+        winnersObj.second.totalLoss = null
+        winnersObj.second.prize = null
+    }
+
+    if(competitionInfo.grandPrizes.length > 2){
+        winnersObj.third.exists = true
+        winnersObj.third.name = sortedUsers[2].name
+        winnersObj.third.totalLoss = sortedUsers[2].totalLoss,
+        winnersObj.third.prize = competitionInfo.grandPrizes[2]
+    }else{
+        winnersObj.third.exists = false
+        winnersObj.third.name = null
+        winnersObj.third.totalLoss = null
+        winnersObj.third.prize = null
+    }
+
+    //set ranking in sorted users object
+    for(j=0; j<sortedUsers.length; j++){
+        sortedUsers[j].rank = j+1
+    }
+    console.log(sortedUsers)
+
+    //template access
     const msg = {
         to: focusUser.email,
-        from: 'Ryan@bigloosers.com',
-        subject: `${competitionName}: A Winner is Crowned`,
-
-        text: `After many weeks and lots of pounds shed, a winner is finally crowned ${sortedUsers[0].name} has won the ${competitionName} by losing ${sortedUsers[0].totalLoss}% of their bodyweight. For their efforts, ${sortedUsers[0].name} wins the grand prize of $${competitionInfo.grandPrizes[0]}. You have lost a total of ${focusUser.totalLoss}%.`,
-        
-        html: `${competitionName}: Congrats to ${sortedUsers[0].name}</strong><br /><p>After many weeks and lots of pounds shed, a winner is finally crowned ${sortedUsers[0].name} has won the ${competitionName} by losing ${sortedUsers[0].totalLoss}% of their bodyweight. For their efforts, ${sortedUsers[0].name} wins the grand prize of $${competitionInfo.grandPrizes[0]}. You have lost a total of ${focusUser.totalLoss}%.</p><ol>${leaderBoard}</ol>`,
-    };
-
-    sgMail.send(msg, (error) => {
+        from: 'weekly-updates@flippingthescales.com',
+        templateId: 'd-8c894da864ea4087b4b98b5c65761d5d',
+        dynamic_template_data: {
+                focusUser: focusUser,
+                sortedUsers: sortedUsers,
+                competitionInfo: competitionInfo,
+                competitionName: competitionName,
+                lookback: lookback,
+                periodEnd: moment(new Date()).format('M/D/YY'),
+                focusUserMissedWeighIn: focusUserMissedWeighIn,
+                focusUserIsLeader: focusUserIsLeader,
+                winnersObj: winnersObj
+            }
+        }
+    
+        sgMail.send(msg, (error, msg) => {
         if(error){
-            console.log('0')
+            console.log('-------error hit sendWinnerAnnouncement------------')
+            console.log(error)
         }else{
-            console.log('weekly email sent successfully to ')
+            console.log('sendWinnerAnnouncement message sent successfully to ')
             console.log(focusUser.email)
         }
     });
