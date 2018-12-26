@@ -8,6 +8,9 @@ const mongoose = require('mongoose');
 const session = require("express-session");
 const bodyParser = require("body-parser");
 const cors = require('cors');
+const helmet = require('helmet')
+
+
 
 require('dotenv').config() //handle hidden environment variables
 
@@ -24,6 +27,9 @@ if (eval(process.env.PRODUCTION)){
 
 //register app
 var app = express();
+
+//initiate helmet
+app.use(helmet())
 
 //use bodyparser
 app.use(bodyParser.urlencoded({ extended: false }))
