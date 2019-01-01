@@ -37,7 +37,7 @@ app.use(bodyParser.json());
 
 
 //Connect to Database
-let DB_URI = `'mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@ds147264-a0.mlab.com:47264,ds147264-a1.mlab.com:47264/wtlscompn?replicaSet=rs-ds147264`;
+let DB_URI = `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@ds147264-a0.mlab.com:47264,ds147264-a1.mlab.com:47264/wtlscompn?replicaSet=rs-ds147264`;
 mongoose.connect(DB_URI, { useNewUrlParser: true });
 
 //Import models
