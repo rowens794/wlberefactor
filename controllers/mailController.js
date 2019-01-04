@@ -13,6 +13,7 @@ exports.sendWelcomeEmail = function (email, userID, name, verificationString, co
 
     const msg = {
         to: email,
+        bcc: 'emails@flippingthescales.com',
         from: 'Ryan@flippingthescales.com',
         subject: 'Welcome to Flipping The Scales - Verification',
         text: 'Welcome to Flipping The Scales - Verification',
@@ -44,6 +45,7 @@ exports.sendJoinCompEmail = function (email, name, invitor, competitionID) {
     //template access
     const msg = {
         to: email,
+        bcc: 'emails@flippingthescales.com',
         from: 'Ryan@flippingthescales.com',
         subject: "You've been Invited to a Weightloss Competition",
         text: "You've been Invited to a Weightloss Competition",
@@ -76,6 +78,7 @@ exports.sendYouveBeenAddedEmail = async function (email, name, invitor, competit
     //template access
     const msg = {
         to: email,
+        bcc: 'emails@flippingthescales.com',
         from: 'Ryan@flippingthescales.com',
         subject: `${invitor} has added you to a weightloss competition`,
         text: `${invitor} has added you to a weightloss competition`,
@@ -108,6 +111,7 @@ exports.resetPasswordEmail = function (email, link) {
     //template access
     const msg = {
         to: email,
+        bcc: 'emails@flippingthescales.com',
         from: 'PasswordReset@flippingthescales.com',
         subject: `Reset your Password`,
         text: `Reset your Password`,
@@ -146,6 +150,7 @@ exports.sendWeeklyAnnouncement = function (focusUser, sortedUsers, competitionIn
     //template access
     const msg = {
         to: focusUser.email,
+        bcc: 'emails@flippingthescales.com',
         from: 'weekly-updates@flippingthescales.com',
         templateId: 'd-1cb67f200cc345a09251588cfc319eaf',
         dynamic_template_data: {
@@ -199,6 +204,7 @@ exports.sendInterimAnnouncement = function (focusUser, sortedUsers, competitionI
     //template access
     const msg = {
         to: focusUser.email,
+        bcc: 'emails@flippingthescales.com',
         from: 'weekly-updates@flippingthescales.com',
         templateId: 'd-762859d018464680b41e69cd29af031f',
         dynamic_template_data: {
@@ -281,6 +287,7 @@ exports.sendWinnerAnnouncement = function (focusUser, sortedUsers, competitionIn
     //template access
     const msg = {
         to: focusUser.email,
+        bcc: 'emails@flippingthescales.com',
         from: 'weekly-updates@flippingthescales.com',
         templateId: 'd-8c894da864ea4087b4b98b5c65761d5d',
         dynamic_template_data: {
@@ -316,6 +323,7 @@ exports.sendReminderEmail = function(name, email, competitionName, competitionID
     //template access
     const msg = {
         to: email,
+        bcc: 'emails@flippingthescales.com',
         from: 'PasswordReset@flippingthescales.com',
         subject: `Record Your Weight Today`,
         text: `Record Your Weight Today`,
