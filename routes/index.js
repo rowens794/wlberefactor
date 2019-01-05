@@ -55,22 +55,26 @@ router.post('/signin', function(req, res, next) {
 		}
 
 		console.log(user)
-
-		req.logIn(user, function(err) {
-			if (err) return console.log(err);
-            var cert = process.env.JWT_KEY;
-
-            const ExpirationInSections = 60 * 60 * 24 * 7 //token lasts for 7 days
-            let tokenExp = new Date();
-            tokenExp.setSeconds(tokenExp.getSeconds() + ExpirationInSections);
-            tokenExp = new Date(tokenExp).getTime();
-            
-			jwt.sign({ userID: user._id }, cert, { expiresIn: ExpirationInSections }, function(err, token) {
-                if (err) return res.send(err);
-				let response = {token: token, userID: user._id, tokenExp: tokenExp};
-                return res.json(response);
+		if (user.verified){
+			return res.json(JSON.stringify({login: 'notVerified'}));
+		}else{
+			req.logIn(user, function(err) {
+				if (err) return console.log(err);
+				var cert = process.env.JWT_KEY;
+	
+				const ExpirationInSections = 60 * 60 * 24 * 7 //token lasts for 7 days
+				let tokenExp = new Date();
+				tokenExp.setSeconds(tokenExp.getSeconds() + ExpirationInSections);
+				tokenExp = new Date(tokenExp).getTime();
+				
+				jwt.sign({ userID: user._id }, cert, { expiresIn: ExpirationInSections }, function(err, token) {
+					if (err) return res.send(err);
+					let response = {token: token, userID: user._id, tokenExp: tokenExp};
+					return res.json(response);
+				});
 			});
-		});
+		}
+
 	})(req, res, next);
 });
 
