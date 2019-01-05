@@ -137,12 +137,15 @@ exports.addUserToCompFromEmail = async function (req, res) {
                 var alreadySignedUp = false
                 for(i=0; i<user.competitions.length; i++){
                     if(newUser.competitions[i].id === compID){
+                        console.log('already signed up to competition')
                         alreadySignedUp = true
                     }
                 }
         
                 if(!alreadySignedUp){
-                    competitionDoc.Players.push([newUser.name, newUser.email, competitionDoc.DateObj]) // add newUser to comp
+                    console.log('pushing user into competition')
+                    competitionDoc.Players.push([user.name, user.email, competitionDoc.DateObj]) // add newUser to comp
+                    console.log('pushing comp into user')
                     user.competitions.push({id:competitionDoc.id, name:competitionDoc.competitionName, admin: false})
                     competitionDoc.markModified('Players')
                     competitionDoc.save()
