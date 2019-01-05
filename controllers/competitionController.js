@@ -108,6 +108,7 @@ exports.addUserRefac = async function (req, res) {
 
 exports.addUserToCompFromEmail = async function (req, res) {
     console.log("---------addUserToCompFromEmail----------")
+    console.log(req.body)
 
     //collect initial data
     const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);  
@@ -118,10 +119,14 @@ exports.addUserToCompFromEmail = async function (req, res) {
     var response = {"status":"userJoined"}
 
     await User.findById(userTokenID.userID, function(err, user) {if (err) {response = {"status":"failed"}} else{ user = user }})
+    console.log('----------------------')
+    console.log(user)
 
     //2. collect the competition that the admin is attempting to add a user to
     var competitionDoc = null
     await Competition.findById(compID, function(err, competition) {if (err) {response = {"status":"failed"}} else{ competitionDoc = competition }})
+    console.log('----------------------')
+    console.log(competitionDoc)
 
     //5. test if new user is signed up and either add to comp or invite based on status
     if (user){
