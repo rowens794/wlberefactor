@@ -50,7 +50,7 @@ exports.addUserRefac = async function (req, res) {
 
     //1. Get the users DB Document & verify token
     var adminUser = null
-    var response = null
+    var response = {"status":"userInvited"}
 
     await User.findById(userTokenID.userID, function(err, user) {if (err) {response = {"status":"failed"}} else{ adminUser = user }})
 
@@ -67,28 +67,20 @@ exports.addUserRefac = async function (req, res) {
         if (err) {
             res.json({"status":"failed"})
         } else{ 
-            console.log(user)
             newUser = user[0] 
         }})
 
     //5. test if new user is signed up and either add to comp or invite based on status
-    console.log("newUser-----------------")
-    console.log(newUser)
     if (newUser){
         
         //5.1 verify that newUser is not already signed up to compititon
         var alreadySignedUp = false
         for(i=0; i<newUser.competitions.length; i++){
-            console.log('5.1--------------------')
-            console.log(newUser.competitions[i].id)
-            console.log(compID)
             if(newUser.competitions[i].id === compID){
                 alreadySignedUp = true
             }
         }
 
-        console.log('!alreadySignedUp--------------')
-        console.log(!alreadySignedUp)
         if(!alreadySignedUp){
             competitionDoc.Players.push([newUser.name, newUser.email, competitionDoc.DateObj]) // add newUser to comp
             newUser.competitions.push({id:competitionDoc.id, name:competitionDoc.competitionName, admin: false})
