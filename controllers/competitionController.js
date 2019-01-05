@@ -119,7 +119,9 @@ exports.addUserToCompFromEmail = async function (req, res) {
     var user = null
     var response = {"status":"userJoined"}
 
-    await User.findById(userTokenID.userID, function(err, user) {if (err) {response = {"status":"failed"}} else{ user = user }})
+    await User.findById(userTokenID.userID, function(err, user) {
+        if (err) {response = {"status":"failed"}}}) 
+
     console.log('----------------------')
     console.log(user)
 
