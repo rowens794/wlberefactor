@@ -54,6 +54,8 @@ router.post('/signin', function(req, res, next) {
 			return res.json(JSON.stringify({login: 'failed'}));
 		}
 
+		console.log(user)
+
 		req.logIn(user, function(err) {
 			if (err) return console.log(err);
             var cert = process.env.JWT_KEY;
