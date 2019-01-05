@@ -112,7 +112,8 @@ exports.addUserToCompFromEmail = async function (req, res) {
 
     //collect initial data
     const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);  
-    var compID = req.body.compID
+    var compID = req.body.competitionId
+    console.log(userTokenID)
 
     //1. Get the users DB Document & verify token
     var user = null
