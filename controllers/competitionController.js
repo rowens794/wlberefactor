@@ -118,7 +118,7 @@ exports.addUserToCompFromEmail = async function (req, res) {
     //1. Get the users DB Document & verify token
     var response = {"status":"userJoined"}
 
-    await User.findById(userTokenID.userID, function(err, user) {
+    await User.findById(userTokenID.userID, async function(err, user) {
         if (err) {response = {"status":"failed"}}
         else{
             console.log('----------------------')
@@ -126,7 +126,7 @@ exports.addUserToCompFromEmail = async function (req, res) {
         
             //2. collect the competition that the admin is attempting to add a user to
             var competitionDoc = null
-            await Competition.findById(compID, function(err, competition) {if (err) {response = {"status":"failed"}} else{ competitionDoc = competition }})
+            await Competition.findById(compID, async function(err, competition) {if (err) {response = {"status":"failed"}} else{ competitionDoc = competition }})
             console.log('----------------------')
             console.log(competitionDoc)
         
