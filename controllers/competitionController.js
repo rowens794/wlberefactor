@@ -66,6 +66,8 @@ exports.addUserRefac = async function (req, res) {
     await User.find({email: newUserEmail}, function(err, user) {if (err) {res.json({"status":"failed"})} else{ newUser = user[0] }})
 
     //5. test if new user is signed up and either add to comp or invite based on status
+    console.log("newUser-----------------")
+    console.log(newUser)
     if (newUser){
         
         //5.1 verify that newUser is not already signed up to compititon
@@ -91,7 +93,7 @@ exports.addUserRefac = async function (req, res) {
             mail.sendYouveBeenAddedEmail(newUser.email, newUser.name, adminUser.name, competitionDoc.CompetitionName)
             response = {"status":"success"}
         }else{
-            response = {"status":"user alread enrolled"}
+            response = {"status":"user already enrolled"}
         }
 
     }else{
