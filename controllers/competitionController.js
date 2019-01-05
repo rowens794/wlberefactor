@@ -71,11 +71,16 @@ exports.addUserRefac = async function (req, res) {
         //5.1 verify that newUser is not already signed up to compititon
         var alreadySignedUp = false
         for(i=0; i<newUser.competitions.length; i++){
+            console.log('5.1--------------------')
+            console.log(newUser.competitions[i].id)
+            console.log(compID)
             if(newUser.competitions[i].id === compID){
                 alreadySignedUp = true
             }
         }
 
+        console.log('!alreadySignedUp--------------')
+        console.log(!alreadySignedUp)
         if(!alreadySignedUp){
             competitionDoc.Players.push([newUser.name, newUser.email, competitionDoc.DateObj]) // add newUser to comp
             newUser.competitions.push({id:competitionDoc.id, name:competitionDoc.competitionName, admin: false})
@@ -93,6 +98,9 @@ exports.addUserRefac = async function (req, res) {
         mail.sendJoinCompEmail(newUserEmail, newUserName, adminUser.name, competitionDoc.id)
     }
 
+    console.log('response--------------')
+    console.log(response)
+    
     //6. send success message to front end
     res.json(response)
 }
