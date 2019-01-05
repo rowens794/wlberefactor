@@ -102,6 +102,38 @@ exports.sendYouveBeenAddedEmail = async function (email, name, invitor, competit
     });
 }
 
+exports.sendYouveBeenAddedEmail2 = async function (email, name, competitionName) {
+    // using SendGrid's v3 Node.js Library
+    // https://github.com/sendgrid/sendgrid-nodejs
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log('----------mailController.sendYouveBeenAddedEmail-----------')
+
+    //template access
+    const msg = {
+        to: email,
+        bcc: 'emails@flippingthescales.com',
+        from: 'Ryan@flippingthescales.com',
+        subject: `You've been added you to a weightloss competition`,
+        text: `You've been added you to a weightloss competition`,
+        templateId: 'd-e303a08b2c1f490eb6c8044fb609a55d',
+        dynamic_template_data: {
+                name: name,
+                email: email,
+                competitionName: competitionName 
+            }
+        }
+    
+        sgMail.send(msg, (error, msg) => {
+        if(error){
+            console.log('-------error hit sendYouveBeenAddedEmail------------')
+            console.log(error.response.body)
+        }else{
+            //console.log('sendJoinCompEmail message sent successfully to ')
+            //console.log(email)
+        }
+    });
+}
+
 exports.resetPasswordEmail = function (email, link) {
     // using SendGrid's v3 Node.js Library
     // https://github.com/sendgrid/sendgrid-nodejs

@@ -180,6 +180,11 @@ router.post('/addUserToComp', function(req, res, next) {
 	competitionController.addUserRefac(req, res)
 });
 
+router.post('/addUserToCompFromEmail', function(req, res, next) {
+	//create the competition and respond back to front end
+	competitionController.addUserToCompFromEmail(req, res)
+});
+
 router.post('/registerfrominvite/:compID', function(req, res, next) {
 	//create the competition and respond back to front end
 	console.log('1. Start--------------------------------')
