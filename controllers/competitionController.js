@@ -63,7 +63,13 @@ exports.addUserRefac = async function (req, res) {
 
     //4. attempt to retrieve new users DB document
     var newUser = null
-    await User.find({email: newUserEmail}, function(err, user) {if (err) {res.json({"status":"failed"})} else{ newUser = user[0] }})
+    await User.find({email: newUserEmail}, function(err, user) {
+        if (err) {
+            res.json({"status":"failed"})
+        } else{ 
+            console.log(user)
+            newUser = user[0] 
+        }})
 
     //5. test if new user is signed up and either add to comp or invite based on status
     console.log("newUser-----------------")
