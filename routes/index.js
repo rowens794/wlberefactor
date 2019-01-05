@@ -54,7 +54,7 @@ router.post('/signin', function(req, res, next) {
 			return res.json(JSON.stringify({login: 'failed'}));
 		}
 
-		console.log(user)
+		//check if user is verified
 		if (user.verified){
 			return res.json(JSON.stringify({login: 'notVerified'}));
 		}else{
