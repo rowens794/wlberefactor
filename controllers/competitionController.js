@@ -121,51 +121,58 @@ exports.addUserToCompFromEmail = async function (req, res) {
     await User.findById(userTokenID.userID, async function(err, user) {
         if (err) {response = {"status":"failed"}}
         else{
-            console.log('----------------------')
+            console.log('-----------1-----------')
             console.log(user)
         
             //2. collect the competition that the admin is attempting to add a user to
-            var competitionDoc = null
-            await Competition.findById(compID, async function(err, competition) {if (err) {response = {"status":"failed"}} else{ competitionDoc = competition }})
-            console.log('----------------------')
-            console.log(competitionDoc)
-        
-            //5. test if new user is signed up and either add to comp or invite based on status
-            if (user){
+            await Competition.findById(compID, async function(err, competition) {
+                if (err) {response = {"status":"failed"}} 
+                else{ 
+                     
+                    console.log('----------2------------')
+                    console.log('competition#########################')
+                    console.log(competition)
+                    console.log('user##############################')
+                    console.log(user)
+                    console.log('compID##############################')
+                    console.log(compID)
+                    console.log('##############################')
+                    //5. test if new user is signed up and either add to comp or invite based on status
+                    if (user){
+                        //5.1 verify that newUser is not already signed up to compititon
+                        var alreadySignedUp = false
+                        for(i=0; i<user.competitions.length; i++){
+                            if(user.competitions[i].id === compID){
+                                console.log('already signed up to competition')
+                                alreadySignedUp = true
+                            }
+                        }
                 
-                //5.1 verify that newUser is not already signed up to compititon
-                var alreadySignedUp = false
-                for(i=0; i<user.competitions.length; i++){
-                    if(newUser.competitions[i].id === compID){
-                        console.log('already signed up to competition')
-                        alreadySignedUp = true
+                        if(!alreadySignedUp){
+                            console.log('---------already signed up-----------')
+                            competition.Players.push([user.name, user.email, competition.DateObj]) // add newUser to comp
+                            user.competitions.push({id:competition.id, name:competition.CompetitionName, admin: false})
+                            competition.markModified('Players')
+                            competition.save()
+                            user.markModified('competitions')
+                            user.save()
+                            mail.sendYouveBeenAddedEmail(user.email, user.name, competition.CompetitionName)
+                            response = {"status":"success"}
+                        }else{
+                            console.log('---------already enrolled-----------')
+                            response = {"status":"user already enrolled"}
+                        }
+                
+                    }else{
+                        console.log('---------err enrolling-----------')
+                        response = {"status":"error enrolling user"}
                     }
-                }
-        
-                if(!alreadySignedUp){
-                    console.log('pushing user into competition')
-                    competitionDoc.Players.push([user.name, user.email, competitionDoc.DateObj]) // add newUser to comp
-                    console.log('pushing comp into user')
-                    user.competitions.push({id:competitionDoc.id, name:competitionDoc.competitionName, admin: false})
-                    competitionDoc.markModified('Players')
-                    competitionDoc.save()
-                    user.markModified('competitions')
-                    user.save()
-                    mail.sendYouveBeenAddedEmail(user.email, user.name, competitionDoc.CompetitionName)
-                    response = {"status":"success"}
-                }else{
-                    response = {"status":"user already enrolled"}
-                }
-        
-            }else{
-                response = {"status":"error enrolling user"}
-            }
-        
-            console.log('response--------------')
-            console.log(response)
-        }}) 
-
-    
+                
+                    console.log('response--------------')
+                    console.log(response)
+            }}) 
+        }})
+   
     //6. send success message to front end
     res.json(response)
 }
