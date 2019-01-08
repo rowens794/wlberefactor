@@ -97,9 +97,6 @@ exports.addUserRefac = async function (req, res) {
     }else{
         mail.sendJoinCompEmail(newUserEmail, newUserName, adminUser.name, competitionDoc.id)
     }
-
-    console.log('response--------------')
-    console.log(response)
     
     //6. send success message to front end
     res.json(response)
@@ -122,21 +119,12 @@ exports.addUserToCompFromEmail = async function (req, res) {
         if (err) {response = {"status":"failed"}}
         else{
             console.log('-----------1-----------')
-            console.log(user)
         
             //2. collect the competition that the admin is attempting to add a user to
             await Competition.findById(compID, async function(err, competition) {
                 if (err) {response = {"status":"failed"}} 
                 else{ 
-                     
-                    console.log('----------2------------')
-                    console.log('competition#########################')
-                    console.log(competition)
-                    console.log('user##############################')
-                    console.log(user)
-                    console.log('compID##############################')
-                    console.log(compID)
-                    console.log('##############################')
+
                     //5. test if new user is signed up and either add to comp or invite based on status
                     if (user){
                         //5.1 verify that newUser is not already signed up to compititon
@@ -174,6 +162,105 @@ exports.addUserToCompFromEmail = async function (req, res) {
         }})
    
     //6. send success message to front end
+    res.json(response)
+}
+
+exports.addCompetitionByID = async function (req, res) {
+    console.log("---------addCompetitionByID----------")
+    //1. verify the user token and store the ID'd user as the admin
+    var token = req.body.userToken
+    var competitionID = req.body.competitionID
+
+    const userTokenID = await jwt.verify(token, process.env.JWT_KEY); 
+    var userDoc = null
+    var competitionDoc = null
+    var response = null
+
+    if (competitionID.match(/^[0-9a-fA-F]{24}$/)) {
+        console.log('valid competition id provided')
+        await Competition.findById(competitionID, function(err, competition){
+            if (err  || competition == null) {
+                console.log('competition does not exist')
+                response = {"status":"That ID does not match an existing competition."}}
+            else{
+                console.log('competition found')
+                competitionDoc = competition}
+        })
+    }else{
+        console.log('invalid competition ID provided')
+        response = {"status":"You've entered an invalid competition ID."}
+    }
+
+    if (userTokenID != null){
+        await User.findById(userTokenID.userID, function(err, user){
+            if (err || user == null) {
+                console.log('user does not exist or is not logged in')
+                response = {"status":"Error: You are no longer logged in. Please log in again."}}
+            else{
+                console.log('user found') 
+                userDoc = user }
+        })
+    }else{
+        console.log('You have been logged out.  Please log back in')
+        response = {"status":"You have been logged out.  Please log back in."}
+    }
+    
+
+    if(userDoc && competitionDoc){
+        console.log('user and competition found')
+
+        //check if user is already in competition
+        var userAlreadyEnrolled = false
+        var dontAddComp = false
+        for (i=0; i < userDoc.competitions.length; i++){
+            console.log(competitionID)
+            if(competitionID == userDoc.competitions[i].id){
+                console.log('competition found')
+                userAlreadyEnrolled = true
+            }
+        }
+
+        if(userAlreadyEnrolled){
+            console.log('user has competition already')
+            dontAddComp = true
+        }else{
+            console.log('competition added to user')
+            saveObj = { id: competitionDoc.id,
+                name: competitionDoc.CompetitionName,
+                admin: false },
+            userDoc.competitions.push(saveObj)
+            userDoc.markModified()
+            userDoc.save()
+        }
+
+        //check if competition already has user
+        var competitionHasUser = false
+        for (j=0; j < competitionDoc.Players.length; j++){
+            if(userDoc.email == competitionDoc.Players[j][1]){
+                console.log('competition has user already')
+                competitionHasUser = true
+            }
+        }
+
+        if(competitionHasUser){
+            dontAddComp = true
+        }else{
+            console.log('user added to competition')
+            saveObj = [ userDoc.name, userDoc.email, competitionDoc.DateObj ]
+            competitionDoc.Players.push(saveObj)
+            competitionDoc.markModified()
+            competitionDoc.save()
+        }
+
+        if(!dontAddComp){
+            console.log('Successfully Added')
+            response = {"status":"You have been added to "+competitionDoc.CompetitionName}
+        }else{
+            console.log('send already in notice')
+            response = {"status":"You are enrolled in "+competitionDoc.CompetitionName + " please check your dashboard."}
+        }    
+    }
+
     res.json(response)
 }
 

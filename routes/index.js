@@ -255,7 +255,11 @@ router.get('/cronremind', function(req, res){
 router.get('/changeemailpref', function(req, res){
 	//cron post will provide updates to competitors the day after each weeks completion
 	userController.changeEmailPref(req, res)
-	
+})
+
+router.post('/addCompByID', function(req, res){
+	//cron post will provide updates to competitors the day after each weeks completion
+	competitionController.addCompetitionByID(req, res)
 })
 
 module.exports = router;
