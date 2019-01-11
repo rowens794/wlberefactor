@@ -356,7 +356,7 @@ exports.sendReminderEmail = function(name, email, competitionName, competitionID
     const msg = {
         to: email,
         bcc: 'emails@flippingthescales.com',
-        from: 'PasswordReset@flippingthescales.com',
+        from: 'admin@flippingthescales.com',
         subject: `Record Your Weight Today`,
         text: `Record Your Weight Today`,
         templateId: 'd-dbcc5b6c08914ede9ba16f0394c2cdb9',
