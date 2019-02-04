@@ -6,6 +6,7 @@ const logger = require('morgan');
 const expressValidator = require('express-validator');
 const mongoose = require('mongoose');
 const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const Sentry = require('@sentry/node');
@@ -59,11 +60,13 @@ const User = require('./models/userSchema');
 app.use(cors());
 
 app.use(express.static('public'));
+
 app.use(
   session({
-    secret: 'simpleExpressMVC',
-    resave: true,
-    saveUninitialized: true,
+    saveUninitialized: false, // don't create session until something stored
+    resave: false, // don't save session if unmodified
+    secret: process.env.SESSION_SECRET,
+    store: new MongoStore({ mongooseConnection: mongoose.connection }),
   }),
 );
 
