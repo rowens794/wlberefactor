@@ -1,55 +1,193 @@
 const mongoose = require('mongoose');
+const md5 = require('md5');
+const Sentry = require('@sentry/node');
+
 const User = mongoose.model('User');
-var md5 = require('md5');
-const jwt = require('jsonwebtoken');
 const Competition = mongoose.model('Competition');
+const mail = require('../mailController');
 
-const mail = require('./mailController');
+const { rootURL } = global;
+const authenticate = User.authenticate();
 
-var exports = module.exports = {};
+function userValidation(request) {
+  request.sanitizeBody('name');
+  request.checkBody('name', 'You must supply a name').notEmpty();
+  request.checkBody('email', 'Email is not valid').isEmail();
+  return request.validationErrors();
+}
 
+exports.userVerification = async (req, res) => {
+  const { userID, verificationToken } = req.params;
 
-exports.userValidation = function (req, res, next) {
-    req.sanitizeBody('name');
-    req.checkBody('name', 'you must supply a name').notEmpty();
-    
-    const errors = req.validationErrors();
-    if (errors){
-        res.json({message: errors.msg})
+  User.findById(req.params.userID, (err, user) => {
+    if (err) {
+      res.redirect(`${rootURL}verified?error_code_1`);
+      Sentry.captureMessage(
+        `USER VERIFICATION: Failed to verify User userID: ${userID} | verificationToken: ${verificationToken}`,
+      );
 
-    }else{
-        next
+      // if users verification code matches the one originally assigned then set user to verified
+    } else if (user.verificationString === req.params.verificationToken) {
+      const verifiedUser = user;
+      verifiedUser.verified = true;
+      user.save();
+      res.redirect(`${rootURL}verified?success`);
+    } else {
+      // if the users verification code did not match
+      res.redirect(`${rootURL}verified?error_code_2`);
+      Sentry.captureMessage(
+        `USER VERIFICATION: userID: ${userID} has attempted to verify with in incorrect verificationToken: ${verificationToken}`,
+      );
     }
+  });
 };
 
-exports.userRegistration = async function (req, res) {
+exports.userRegistrationFromInvite = (req, res) => {
+  // test for validation errors
+  const errors = userValidation(req);
+  if (errors) {
+    // let frontend know if there is an input error
+    res.json({ message: errors[0].msg });
+  } else {
+    // create a new user account
+    User.register(
+      {
+        username: req.body.email,
+        email: req.body.email,
+        name: req.body.name,
+        verified: false,
+        verificationString: md5(Math.random() * 100000000),
+        emailsEnabled: true,
+        signUpDate: new Date(),
+      },
+      req.body.password,
+      (userRegistrationError, user) => {
+        if (userRegistrationError) {
+          res.json({
+            message:
+              'A user with the given email address is already registered',
+          });
+          Sentry.captureMessage(
+            `USER REGISTRATION: Unable to register user with email: ${
+              req.body.email
+            }`,
+          );
+        } else {
+          // authenticate the user
+          authenticate('username', 'password', (authenticationError) => {
+            if (authenticationError) {
+              res.json({
+                message: 'Unable to authenticate user.',
+              });
+              Sentry.captureMessage(
+                'USER REGISTRATION: Error authenticating user',
+              );
+            } else {
+              /* Once the user has been registered and authenticated
+              then add the user to the competition */
+              Competition.findById(
+                req.body.comp_id,
+                (competitionRetrievalError, competition) => {
+                  if (competitionRetrievalError) {
+                    Sentry.captureMessage(
+                      `USER REGISTRATION: Cannot add user ${
+                        req.body.email
+                      } to competititon: ${req.body.comp_id}`,
+                    );
+                    res.json({
+                      message:
+                        'We had trouble locating the requested competition.',
+                    });
+                  } else {
+                    competition.Players.push([
+                      user.name,
+                      user.email,
+                      competition.DateObj,
+                    ]);
+                    competition.markModified('Players');
+                    competition.save();
 
-    await User.register(
-        {   username:req.body.email, 
-            email:req.body.email, 
-            name: req.body.name, 
-            verified: false, 
-            verificationString: md5(Math.random()*100000000),
-            emailsEnabled: true
-        },  req.body.password, function(err, user) {
+                    // Add the competition to the user
+                    user.competitions.push({
+                      id: competition.id,
+                      name: competition.CompetitionName,
+                      admin: false,
+                    });
+                    user.markModified('competitions');
+                    user.save();
 
-        if (err) { 
-            res.json({message: 'A user with the given username is already registered'})
+                    // send a welcome email with verification string to new user
+                    mail.sendWelcomeEmail(
+                      user.email,
+                      user.id,
+                      user.name,
+                      user.verificationString,
+                    );
 
-        } else{
-            //send a welcome email with verification string to new user
-            mail.sendWelcomeEmail(user.email, user._id, user.name, user.verificationString)
-    
-            //authenticate the user
-            var authenticate = User.authenticate();
-            authenticate('username', 'password', function(err, result) {
-                if (err) { 
-                    console.log(err)
-                }else{
-                    //once authenticated send user to registration recieved page
-                    res.json({message: 'success'})
-                }
-            });
+                    // send success message
+                    res.json({ message: 'success' });
+                  }
+                },
+              );
+            }
+          });
         }
-    });
+      },
+    );
+  }
+};
+
+exports.userRegistration = (req, res) => {
+  // test for validation errors
+  const validationErrors = userValidation(req);
+  if (validationErrors) {
+    // let frontend know if there is an input error
+    res.json({ message: validationErrors[0].msg });
+  } else {
+    // register the user
+    User.register(
+      {
+        username: req.body.email,
+        email: req.body.email,
+        name: req.body.name,
+        verified: false,
+        verificationString: md5(Math.random() * 100000000),
+        emailsEnabled: true,
+        signUpDate: new Date(),
+      },
+      req.body.password,
+      (userRegistrationError, user) => {
+        if (userRegistrationError) {
+          res.json({
+            message:
+              'A user with the given email address is already registered',
+          });
+          Sentry.captureMessage(
+            `USER REGISTRATION: Unable to register user with email: ${
+              req.body.email
+            }`,
+          );
+        } else {
+          // authenticate the user
+          authenticate('username', 'password', (authenticationError) => {
+            if (authenticationError) {
+              Sentry.captureMessage(
+                'USER REGISTRATION: Error authenticating user',
+              );
+            } else {
+              // send a welcome email with verification string to new user
+              mail.sendWelcomeEmail(
+                user.email,
+                user.id,
+                user.name,
+                user.verificationString,
+              );
+              // once authenticated send user to registration recieved page
+              res.json({ message: 'success' });
+            }
+          });
+        }
+      },
+    );
+  }
 };

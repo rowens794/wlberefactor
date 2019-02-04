@@ -1,60 +1,73 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 const expressValidator = require('express-validator');
 const mongoose = require('mongoose');
-const session = require("express-session");
-const bodyParser = require("body-parser");
+const session = require('express-session');
+const bodyParser = require('body-parser');
 const cors = require('cors');
-const helmet = require('helmet')
+const Sentry = require('@sentry/node');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 
+require('dotenv').config(); // handle hidden environment variables
 
-
-require('dotenv').config() //handle hidden environment variables
-
-//establish whether the server has started in development or production (this is set by environment vars)
-if (eval(process.env.PRODUCTION)){
-  rootURL = process.env.FE_PRODUCTION_URL;
+// establish whether the server has started in development or production
+let DB_URI = null;
+if (process.env.PRODUCTION === 'true') {
+  global.rootURL = process.env.FE_PRODUCTION_URL;
   console.log('server started in PRODUCTION');
-  console.log(rootURL);
-} else{
-  rootURL = process.env.FE_DEV_URL;
+  console.log(`Frontend Root URL:   ${global.rootURL}`);
+  console.log(`Backend Root URL:   ${process.env.SERVER_URL}`);
+  DB_URI = `mongodb://${process.env.DB_USERNAME}:${
+    process.env.DB_PASSWORD
+  }@ds147264-a0.mlab.com:47264,ds147264-a1.mlab.com:47264/wtlscompn?replicaSet=rs-ds147264`;
+} else {
+  global.rootURL = process.env.FE_DEV_URL;
   console.log('server started in DEVELOPMENT');
-  console.log('Frontend Root URL: '+rootURL);
+  console.log(`Frontend Root URL:   ${global.rootURL}`);
+  console.log(`Backend Root URL:   ${process.env.SERVER_URL}`);
+  DB_URI = `mongodb://${process.env.DB_REF_USERNAME}:${
+    process.env.DB_REF_PASSWORD
+  }@ds159993.mlab.com:59993/wtlscomp`;
 }
 
-//register app
-var app = express();
+// register app
+const app = express();
 
-//initiate helmet
-app.use(helmet())
+// initialize Sentry
+Sentry.init({
+  dsn: 'https://f3bbe69d195646e0892b19a990772106@sentry.io/1385697',
+});
+app.use(Sentry.Handlers.requestHandler());
 
-//use bodyparser
-app.use(bodyParser.urlencoded({ extended: false }))
+// use bodyparser
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-
-//Connect to Database
-let DB_URI = `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@ds147264-a0.mlab.com:47264,ds147264-a1.mlab.com:47264/wtlscompn?replicaSet=rs-ds147264`;
+// Connect to Database
 mongoose.connect(DB_URI, { useNewUrlParser: true });
 
-//Import models
+// Import models
 require('./models/userSchema');
 require('./models/competitionSchema');
 const User = require('./models/userSchema');
-const Competition = require('./models/competitionSchema');
 
-//allow CORS
+// allow CORS
 app.use(cors());
 
-app.use(express.static("public"));
-app.use(session({ secret: 'simpleExpressMVC', resave: true, saveUninitialized: true  }));
+app.use(express.static('public'));
+app.use(
+  session({
+    secret: 'simpleExpressMVC',
+    resave: true,
+    saveUninitialized: true,
+  }),
+);
 
-//initialize passport js
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
+// initialize passport js
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -64,7 +77,6 @@ passport.use(new LocalStrategy(User.authenticate()));
 // use static serialize and deserialize of model for passport session support
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
-
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -76,22 +88,24 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-//exposes validation methods to requests
+// exposes validation methods to requests
 app.use(expressValidator());
 
-//import routers
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+// import router
+const indexRouter = require('./routes/index');
+
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
+// Sentry Error handler
+app.use(Sentry.Handlers.errorHandler());
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use((err, req, res) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
