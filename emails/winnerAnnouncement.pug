@@ -1,0 +1,48 @@
+
+include header.pug
+
+h2.title #{competitionName} - Weekly Update
+
+.body
+  p Hi #{focusUser.name},
+
+  if focusUserIsLeader
+    p YOU DID IT!  You are the biggest loser in #{competitionName}.  Not only are you the pride and joy of your friends and family but you have also won the grand prize of $#{competitionInfo.grandPrizes[0]}.
+  else 
+    p #{sortedUsersCopy[0].name} was the grand prize winner of #{competitionName}.  #{sortedUsersCopy[0].name} will recieve $#{competitionInfo.grandPrizes[0]} for their victory. 
+
+  p Over the past #{competitionInfo.totalDays} days you have lost #{focusUser.totalLoss}%.
+  
+  .spacer
+
+  h3.subtitle Leaderboard
+  table.leaderboard
+    tr
+      th 
+      th 
+      th Total Loss
+      th Final Prize
+
+    each user, index in sortedUsersCopy 
+      if (index < competitionInfo.grandPrizes.length)
+        tr
+          td(height=20) #{index+1}. 
+          td.alignLeft(height=20) #{user.name}
+          td(height=20) #{user.totalLoss}%
+          td(height=20) $#{competitionInfo.grandPrizes[index]}
+      else  
+        tr
+          td(height=20) #{index+1}. 
+          td.alignLeft(height=20) #{user.name}
+          td(height=20) #{user.totalLoss}%
+          td(height=20) 
+  
+  .spacer
+
+  include ads/p90x.pug
+
+  .spacer
+
+include footer.pug
+
+  

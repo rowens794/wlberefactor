@@ -14,6 +14,8 @@ const userController = require('../controllers/userController');
 const competitionController = require('../controllers/competitionController');
 const mail = require('../controllers/mailController');
 const cron = require('../controllers/cronController');
+const email = require('../controllers/email/email');
+const importData = require('../controllers/email/sampleData');
 
 const User = mongoose.model('User');
 const Competition = mongoose.model('Competition');
@@ -24,6 +26,19 @@ const { rootURL } = global;
 /* ----------------- Routes ------------------ */
 router.get('/', (req, res) => {
   res.render('index', { title: 'Express' });
+});
+
+/* ----------------- test ------------------ */
+router.get('/test', (req, res) => {
+  const { sampleData } = importData;
+  email.sendWinnerAnnouncement(
+    sampleData.focusUser,
+    sampleData.sortedUser,
+    sampleData.competitionInfo,
+    sampleData.competitionName,
+    sampleData.lookback,
+  );
+  res.send('success');
 });
 
 // -------REGISTRATION RELATED ROUTES-------------
@@ -68,20 +83,15 @@ router.post('/signin', function(req, res, next) {
         tokenExp.setSeconds(tokenExp.getSeconds() + ExpirationInSections);
         tokenExp = new Date(tokenExp).getTime();
 
-        jwt.sign(
-          { userID: user._id },
-          cert,
-          { expiresIn: ExpirationInSections },
-          function(err, token) {
-            if (err) return res.send(err);
-            let response = {
-              token: token,
-              userID: user._id,
-              tokenExp: tokenExp,
-            };
-            return res.json(response);
-          },
-        );
+        jwt.sign({ userID: user._id }, cert, { expiresIn: ExpirationInSections }, function(err, token) {
+          if (err) return res.send(err);
+          let response = {
+            token: token,
+            userID: user._id,
+            tokenExp: tokenExp,
+          };
+          return res.json(response);
+        });
       });
     }
   })(req, res, next);

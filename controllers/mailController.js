@@ -1,13 +1,7 @@
 const sgMail = require('@sendgrid/mail');
 const moment = require('moment');
 
-exports.sendWelcomeEmail = function(
-  email,
-  userID,
-  name,
-  verificationString,
-  competitionID,
-) {
+exports.sendWelcomeEmail = function(email, userID, name, verificationString, competitionID) {
   // using SendGrid's v3 Node.js Library
   // https://github.com/sendgrid/sendgrid-nodejs
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -74,12 +68,7 @@ exports.sendJoinCompEmail = function(email, name, invitor, competitionID) {
   });
 };
 
-exports.sendYouveBeenAddedEmail = async function(
-  email,
-  name,
-  invitor,
-  competitionName,
-) {
+exports.sendYouveBeenAddedEmail = async function(email, name, invitor, competitionName) {
   // using SendGrid's v3 Node.js Library
   // https://github.com/sendgrid/sendgrid-nodejs
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -112,11 +101,7 @@ exports.sendYouveBeenAddedEmail = async function(
   });
 };
 
-exports.sendYouveBeenAddedEmail2 = async function(
-  email,
-  name,
-  competitionName,
-) {
+exports.sendYouveBeenAddedEmail2 = async function(email, name, competitionName) {
   // using SendGrid's v3 Node.js Library
   // https://github.com/sendgrid/sendgrid-nodejs
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -179,13 +164,7 @@ exports.resetPasswordEmail = function(email, link) {
   });
 };
 
-exports.sendWeeklyAnnouncement = function(
-  focusUser,
-  sortedUsers,
-  competitionInfo,
-  competitionName,
-  lookback,
-) {
+exports.sendWeeklyAnnouncement = function(focusUser, sortedUsers, competitionInfo, competitionName, lookback) {
   // using SendGrid's v3 Node.js Library
   // https://github.com/sendgrid/sendgrid-nodejs
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -231,13 +210,7 @@ exports.sendWeeklyAnnouncement = function(
   });
 };
 
-exports.sendInterimAnnouncement = function(
-  focusUser,
-  sortedUsers,
-  competitionInfo,
-  competitionName,
-  lookback,
-) {
+exports.sendInterimAnnouncement = function(focusUser, sortedUsers, competitionInfo, competitionName, lookback) {
   // using SendGrid's v3 Node.js Library
   // https://github.com/sendgrid/sendgrid-nodejs
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -305,13 +278,7 @@ exports.sendInterimAnnouncement = function(
   });
 };
 
-exports.sendWinnerAnnouncement = function(
-  focusUser,
-  sortedUsers,
-  competitionInfo,
-  competitionName,
-  lookback,
-) {
+exports.sendWinnerAnnouncement = function(focusUser, sortedUsers, competitionInfo, competitionName, lookback) {
   // using SendGrid's v3 Node.js Library
   // https://github.com/sendgrid/sendgrid-nodejs
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -355,8 +322,7 @@ exports.sendWinnerAnnouncement = function(
   if (competitionInfo.grandPrizes.length > 2) {
     winnersObj.third.exists = true;
     winnersObj.third.name = sortedUsers[2].name;
-    (winnersObj.third.totalLoss = sortedUsers[2].totalLoss),
-      (winnersObj.third.prize = competitionInfo.grandPrizes[2]);
+    (winnersObj.third.totalLoss = sortedUsers[2].totalLoss), (winnersObj.third.prize = competitionInfo.grandPrizes[2]);
   } else {
     winnersObj.third.exists = false;
     winnersObj.third.name = null;
@@ -400,13 +366,7 @@ exports.sendWinnerAnnouncement = function(
   });
 };
 
-exports.sendReminderEmail = function(
-  name,
-  email,
-  competitionName,
-  competitionID,
-  userID,
-) {
+exports.sendReminderEmail = function(name, email, competitionName, competitionID, userID) {
   // using SendGrid's v3 Node.js Library
   // https://github.com/sendgrid/sendgrid-nodejs
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);

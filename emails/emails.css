@@ -1,0 +1,77 @@
+.body {
+  font-family: 'helvetica';
+  width: 700px;
+  margin: auto;
+  color: black;
+}
+
+.title {
+  font-family: 'helvetica';
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 40px;
+  color: black;
+}
+
+.subtitle {
+  font-family: 'helvetica';
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  color: black;
+}
+
+.footer {
+  text-align: center;
+  font-family: 'helvetica';
+  margin-top: 50px;
+  color: grey;
+  font-size: 0.8em;
+  text-decoration: none;
+}
+
+.button {
+  background-color: green;
+  padding: 15px 40px;
+  border-radius: 5px;
+  width: 200px;
+  font-family: 'helvetica';
+  text-align: center;
+  text-decoration: none;
+  color: white;
+  text-align: center;
+  display: block;
+  margin: auto;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  font-weight: bold;
+}
+
+.leaderboard {
+  width: 400px;
+  font-family: 'helvetica';
+  text-align: center;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+.alignLeft {
+  text-align: left;
+}
+
+.storyTitle {
+  font-weight: bold;
+}
+
+.endSpacer {
+  margin: 200px;
+}
+
+.spacer {
+  margin: 40px;
+}
+
+.emphasize {
+  text-align: center;
+  font-weight: bold;
+}

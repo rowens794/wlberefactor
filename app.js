@@ -19,6 +19,7 @@ require('dotenv').config(); // handle hidden environment variables
 let DB_URI = null;
 if (process.env.PRODUCTION === 'true') {
   global.rootURL = process.env.FE_PRODUCTION_URL;
+  global.serverURL = process.env.SERVER_PRODUCTION_URL;
   console.log('server started in PRODUCTION');
   console.log(`Frontend Root URL:   ${global.rootURL}`);
   console.log(`Backend Root URL:   ${process.env.SERVER_URL}`);
@@ -27,12 +28,11 @@ if (process.env.PRODUCTION === 'true') {
   }@ds147264-a0.mlab.com:47264,ds147264-a1.mlab.com:47264/wtlscompn?replicaSet=rs-ds147264`;
 } else {
   global.rootURL = process.env.FE_DEV_URL;
+  global.serverURL = process.env.SERVER_URL;
   console.log('server started in DEVELOPMENT');
   console.log(`Frontend Root URL:   ${global.rootURL}`);
   console.log(`Backend Root URL:   ${process.env.SERVER_URL}`);
-  DB_URI = `mongodb://${process.env.DB_REF_USERNAME}:${
-    process.env.DB_REF_PASSWORD
-  }@ds159993.mlab.com:59993/wtlscomp`;
+  DB_URI = `mongodb://${process.env.DB_REF_USERNAME}:${process.env.DB_REF_PASSWORD}@ds159993.mlab.com:59993/wtlscomp`;
 }
 
 // register app
@@ -82,8 +82,8 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 // view engine setup
+app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
 
 app.use(logger('dev'));
 app.use(express.json());

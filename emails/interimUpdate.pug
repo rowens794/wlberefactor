@@ -1,0 +1,41 @@
+
+include header.pug
+
+h2.title #{competitionName} - Weekly Update
+
+.body
+  p Hi #{focusUser.name},
+
+  if focusUserIsLeader
+    p Well let's start off with a big congratulations to you!  You are the biggest loser in #{competitionName} over the last #{lookbackString}.  For your efforts you have won $#{competitionInfo.interPrize}.
+  else 
+    p Over the past #{lookbackString} #{sortedUsers[0].name} was the biggest loser in #{competitionName}.  #{sortedUsers[0].name} will recieve $#{competitionInfo.interPrize} for the effort. 
+
+  p This past week your weight change was #{focusUser.weeklyLoss}%.  Keep working hard, you have until #{competitionInfo.competitionEndDate} to lose as much weight as you possibly can.
+  
+  .spacer
+
+  h3.subtitle Leaderboard
+  table.leaderboard
+    tr
+      th 
+      th 
+      th Loss Over Last #{lookbackString}
+      th Total Loss
+
+    each user, index in participantPeriodLosses 
+      tr.grey
+        td(height=20) #{index+1}. 
+        td.alignLeft(height=20) #{user.name}
+        td(height=20) #{user.periodLoss}%
+        td(height=20) #{user.totalLoss}%
+  
+  .spacer
+
+  include ads/p90x.pug
+
+  .spacer
+
+include footer.pug
+
+  
