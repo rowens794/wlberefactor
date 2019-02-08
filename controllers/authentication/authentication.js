@@ -1,6 +1,14 @@
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const Sentry = require('@sentry/node');
+const mongoose = require('mongoose');
+const md5 = require('md5');
+
+const User = mongoose.model('User');
+const mail = require('../email/email');
+
+// get the global rootURL
+const { rootURL } = global;
 
 exports.signIn = async (req, res) => {
   passport.authenticate('local', async (authenticationError, user) => {
@@ -39,4 +47,76 @@ exports.signIn = async (req, res) => {
     });
     return null;
   })(req, res);
+};
+
+exports.verifyToken = (req, res) => {
+  const decoded = jwt.verify(req.body.token, process.env.JWT_KEY);
+  res.send(decoded);
+};
+
+exports.getUserData = (req, res) => {
+  const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
+  User.findById(userTokenID.userID, (err, user) => {
+    if (err) res.json({ status: 'failed' });
+    res.json(user);
+  });
+};
+
+exports.getUserCompData = (req, res) => {
+  const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
+  User.findById(userTokenID.userID, (err, user) => {
+    if (err) res.json({ status: 'failed' });
+    res.json(user);
+  });
+};
+
+exports.forgotPassword = (req, res) => {
+  // look up user, generate a verification string and save string to db
+  User.findOne({ email: req.body.username }, (err, user) => {
+    if (err) {
+      res.json({ reset: 'failed' });
+    } else {
+      const ID = user.id;
+      const verificationString = md5(Math.random() * 100000000);
+      const userDoc = user;
+      userDoc.verificationString = verificationString;
+      userDoc.save();
+
+      const resetURL = `${rootURL}resetpassword/${ID}/${verificationString}`;
+      mail.sendPasswordReset(user.email, resetURL);
+
+      res.json({ reset: 'success' });
+    }
+  });
+};
+
+exports.setPassword = (req, res) => {
+  // look up user, generate a verification string and save string to db
+  User.findById(req.body.id, (err, user) => {
+    if (err) {
+      res.json({ reset: 'failed' });
+    } else if (user.verificationString === req.body.verificationString) {
+      user.setPassword(req.body.password, () => {
+        user.save();
+        res.json({ reset: 'success' });
+      });
+    } else {
+      res.json({ reset: 'failed' });
+    }
+  });
+};
+
+exports.changeEmailPref = (req, res) => {
+  const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
+
+  User.findById(userTokenID.userID, (err, user) => {
+    if (err) {
+      res.json({ status: 'failed' });
+    } else {
+      res.json({ status: 'success' });
+      const userDoc = user;
+      userDoc.emailsEnabled = false;
+      userDoc.save();
+    }
+  });
 };

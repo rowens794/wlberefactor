@@ -1,6 +1,5 @@
 // node module imports
 const express = require('express');
-const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const normalizeEmail = require('normalize-email');
@@ -14,9 +13,7 @@ const userController = require('../controllers/userController');
 const competitionController = require('../controllers/competitionController');
 const mail = require('../controllers/mailController');
 const cron = require('../controllers/cronController');
-const email = require('../controllers/email/email');
 const authentication = require('../controllers/authentication/authentication');
-const importData = require('../controllers/email/sampleData');
 
 const User = mongoose.model('User');
 const Competition = mongoose.model('Competition');
@@ -31,14 +28,6 @@ router.get('/', (req, res) => {
 
 /* ----------------- test ------------------ */
 router.get('/test', (req, res) => {
-  const { sampleData } = importData;
-  email.sendWinnerAnnouncement(
-    sampleData.focusUser,
-    sampleData.sortedUser,
-    sampleData.competitionInfo,
-    sampleData.competitionName,
-    sampleData.lookback,
-  );
   res.send('success');
 });
 
@@ -60,34 +49,40 @@ router.get('/userVerification/:userID/:verificationToken', (req, res) => {
 });
 // ----------------------------------------------
 
+// -------AUTHENTICATION RELATED ROUTES-------------
 router.post('/signin', (req, res) => {
   authentication.signIn(req, res);
 });
 
-router.post('/verifyToken', function(req, res, next) {
-  // /verifyToken takes in a jwt and returns valid user
-  const decoded = jwt.verify(req.body.token, process.env.JWT_KEY);
-  res.send(decoded);
+router.post('/verifyToken', (req, res) => {
+  // this route may not be in use
+  authentication.verifyToken(req, res);
 });
 
-router.post('/userData', function(req, res, next) {
-  //userData takes in a jwt and returns the users data
-
-  const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
-  User.findById(userTokenID.userID, function(err, user) {
-    if (err) res.json({ status: 'failed' });
-    res.json(user);
-  });
+router.post('/userData', (req, res) => {
+  // userData takes in a jwt and returns the users data
+  authentication.getUserData(req, res);
 });
 
-router.post('/userCompData', function(req, res, next) {
-  //userCompData takes in a jwt and returns the users data
-  const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
-  User.findById(userTokenID.userID, function(err, user) {
-    if (err) res.json({ status: 'failed' });
-    res.json(user);
-  });
+router.post('/userCompData', (req, res) => {
+  // userCompData takes in a jwt and returns the users data returns the same things as getUserData
+  authentication.getUserCompData(req, res);
 });
+
+router.post('/forgotpassword', (req, res) => {
+  // reset user password
+  authentication.forgotPassword(req, res);
+});
+
+router.post('/setpassword', (req, res) => {
+  authentication.setPassword(req, res);
+});
+
+router.post('/changeemailpref', (req, res) => {
+  authentication.changeEmailPref(req, res);
+});
+
+// ----------------------------------------------
 
 router.post('/compData', function(req, res, next) {
   //retrieves competition data based on comp ID
@@ -168,53 +163,6 @@ router.post('/addUserToCompFromEmail', function(req, res, next) {
   competitionController.addUserToCompFromEmail(req, res);
 });
 
-router.post('/forgotpassword', function(req, res, next) {
-  //reset user password
-
-  //look up user, generate a verification string and save string to db
-  User.findOne({ email: req.body.username }, function(err, user) {
-    if (err) {
-      console.log('---------error hit resetting password--------------');
-      console.log(err);
-      res.json({ reset: 'failed' });
-    } else {
-      console.log('--------resetting password-------------');
-      let ID = user.id;
-      let verificationString = md5(Math.random() * 100000000);
-      user.verificationString = verificationString;
-      user.save();
-
-      var resetURL = rootURL + 'resetpassword/' + ID + '/' + verificationString;
-      mail.resetPasswordEmail(user.email, resetURL);
-
-      res.json({ reset: 'success' });
-    }
-  });
-});
-
-router.post('/setpassword', function(req, res, next) {
-  //reset user password
-  console.log(req.body);
-
-  //look up user, generate a verification string and save string to db
-  User.findById(req.body.id, function(err, user) {
-    if (err) {
-      console.log('-------error finding user to reset password--------');
-      res.json({ reset: 'failed' });
-    } else {
-      if (user.verificationString === req.body.verificationString) {
-        user.setPassword(req.body.password, function() {
-          user.save();
-          res.json({ reset: 'success' });
-        });
-      } else {
-        console.log('-------verificaiton string does not match DB--------');
-        res.json({ reset: 'failed' });
-      }
-    }
-  });
-});
-
 router.get('/cronpost', function(req, res) {
   //cron post will provide updates to competitors the day after each weeks completion
   cron.sendReviewEmails(req, res);
@@ -223,11 +171,6 @@ router.get('/cronpost', function(req, res) {
 router.get('/cronremind', function(req, res) {
   //cron post will provide updates to competitors the day after each weeks completion
   cron.sendRemindEmails(req, res);
-});
-
-router.get('/changeemailpref', function(req, res) {
-  //cron post will provide updates to competitors the day after each weeks completion
-  userController.changeEmailPref(req, res);
 });
 
 router.post('/addCompByID', function(req, res) {

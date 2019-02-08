@@ -22,9 +22,7 @@ exports.userVerification = async (req, res) => {
   User.findById(req.params.userID, (err, user) => {
     if (err) {
       res.redirect(`${rootURL}verified?error_code_1`);
-      Sentry.captureMessage(
-        `USER VERIFICATION: Failed to verify User userID: ${userID} | verificationToken: ${verificationToken}`,
-      );
+      Sentry.captureMessage(`USER VERIFICATION: Failed to verify User userID: ${userID} | verificationToken: ${verificationToken}`);
 
       // if users verification code matches the one originally assigned then set user to verified
     } else if (user.verificationString === req.params.verificationToken) {
@@ -35,9 +33,7 @@ exports.userVerification = async (req, res) => {
     } else {
       // if the users verification code did not match
       res.redirect(`${rootURL}verified?error_code_2`);
-      Sentry.captureMessage(
-        `USER VERIFICATION: userID: ${userID} has attempted to verify with in incorrect verificationToken: ${verificationToken}`,
-      );
+      Sentry.captureMessage(`USER VERIFICATION: userID: ${userID} has attempted to verify with in incorrect verificationToken: ${verificationToken}`);
     }
   });
 };
@@ -64,14 +60,9 @@ exports.userRegistrationFromInvite = (req, res) => {
       (userRegistrationError, user) => {
         if (userRegistrationError) {
           res.json({
-            message:
-              'A user with the given email address is already registered',
+            message: 'A user with the given email address is already registered',
           });
-          Sentry.captureMessage(
-            `USER REGISTRATION: Unable to register user with email: ${
-              req.body.email
-            }`,
-          );
+          Sentry.captureMessage(`USER REGISTRATION: Unable to register user with email: ${req.body.email}`);
         } else {
           // authenticate the user
           authenticate('username', 'password', (authenticationError) => {
@@ -79,56 +70,37 @@ exports.userRegistrationFromInvite = (req, res) => {
               res.json({
                 message: 'Unable to authenticate user.',
               });
-              Sentry.captureMessage(
-                'USER REGISTRATION: Error authenticating user',
-              );
+              Sentry.captureMessage('USER REGISTRATION: Error authenticating user');
             } else {
               /* Once the user has been registered and authenticated
               then add the user to the competition */
-              Competition.findById(
-                req.body.comp_id,
-                (competitionRetrievalError, competition) => {
-                  if (competitionRetrievalError) {
-                    Sentry.captureMessage(
-                      `USER REGISTRATION: Cannot add user ${
-                        req.body.email
-                      } to competititon: ${req.body.comp_id}`,
-                    );
-                    res.json({
-                      message:
-                        'We had trouble locating the requested competition.',
-                    });
-                  } else {
-                    competition.Players.push([
-                      user.name,
-                      user.email,
-                      competition.DateObj,
-                    ]);
-                    competition.markModified('Players');
-                    competition.save();
+              Competition.findById(req.body.comp_id, (competitionRetrievalError, competition) => {
+                if (competitionRetrievalError) {
+                  Sentry.captureMessage(`USER REGISTRATION: Cannot add user ${req.body.email} to competititon: ${req.body.comp_id}`);
+                  res.json({
+                    message: 'We had trouble locating the requested competition.',
+                  });
+                } else {
+                  competition.Players.push([user.name, user.email, competition.DateObj]);
+                  competition.markModified('Players');
+                  competition.save();
 
-                    // Add the competition to the user
-                    user.competitions.push({
-                      id: competition.id,
-                      name: competition.CompetitionName,
-                      admin: false,
-                    });
-                    user.markModified('competitions');
-                    user.save();
+                  // Add the competition to the user
+                  user.competitions.push({
+                    id: competition.id,
+                    name: competition.CompetitionName,
+                    admin: false,
+                  });
+                  user.markModified('competitions');
+                  user.save();
 
-                    // send a welcome email with verification string to new user
-                    mail.sendWelcomeEmail(
-                      user.email,
-                      user.id,
-                      user.name,
-                      user.verificationString,
-                    );
+                  // send a welcome email with verification string to new user
+                  mail.sendWelcomeEmail(user.email, user.id, user.name, user.verificationString);
 
-                    // send success message
-                    res.json({ message: 'success' });
-                  }
-                },
-              );
+                  // send success message
+                  res.json({ message: 'success' });
+                }
+              });
             }
           });
         }
@@ -159,29 +131,17 @@ exports.userRegistration = (req, res) => {
       (userRegistrationError, user) => {
         if (userRegistrationError) {
           res.json({
-            message:
-              'A user with the given email address is already registered',
+            message: 'A user with the given email address is already registered',
           });
-          Sentry.captureMessage(
-            `USER REGISTRATION: Unable to register user with email: ${
-              req.body.email
-            }`,
-          );
+          Sentry.captureMessage(`USER REGISTRATION: Unable to register user with email: ${req.body.email}`);
         } else {
           // authenticate the user
           authenticate('username', 'password', (authenticationError) => {
             if (authenticationError) {
-              Sentry.captureMessage(
-                'USER REGISTRATION: Error authenticating user',
-              );
+              Sentry.captureMessage('USER REGISTRATION: Error authenticating user');
             } else {
               // send a welcome email with verification string to new user
-              mail.sendWelcomeEmail(
-                user.email,
-                user.id,
-                user.name,
-                user.verificationString,
-              );
+              mail.sendWelcomeEmail(user.email, user.id, user.name, user.verificationString);
               // once authenticated send user to registration recieved page
               res.json({ message: 'success' });
             }
