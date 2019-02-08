@@ -3,13 +3,15 @@ const passport = require('passport');
 const Sentry = require('@sentry/node');
 
 exports.signIn = async (req, res) => {
-  passport.authenticate('local', (authenticationError, user) => {
+  passport.authenticate('local', async (authenticationError, user) => {
     // do initial checks on login
-    if (authenticationError) return res.json(JSON.stringify({ login: 'failed' }));
+    if (authenticationError) {
+      return res.json(JSON.stringify({ login: 'failed' }));
+    }
     if (!user) return res.json(JSON.stringify({ login: 'failed' }));
     if (user.verified === 'false' || user.verified === false) return res.json(JSON.stringify({ login: 'notVerified' }));
 
-    req.logIn(user, (loginError) => {
+    await req.logIn(user, async (loginError) => {
       if (loginError) {
         Sentry.captureMessage(`AUTHENTICATION ERROR: login Error ${loginError} `);
         return res.json(JSON.stringify({ login: 'failed' }));
@@ -21,7 +23,7 @@ exports.signIn = async (req, res) => {
       tokenExp.setSeconds(tokenExp.getSeconds() + ExpirationInSections);
       tokenExp = new Date(tokenExp).getTime();
 
-      jwt.sign({ userID: user.id }, cert, { expiresIn: ExpirationInSections }, (jwtSignError, token) => {
+      await jwt.sign({ userID: user.id }, cert, { expiresIn: ExpirationInSections }, async (jwtSignError, token) => {
         if (jwtSignError) {
           Sentry.captureMessage(`AUTHENTICATION ERROR: JWT Sign Error ${jwtSignError} `);
           return res.json(JSON.stringify({ login: 'failed' }));
@@ -33,14 +35,8 @@ exports.signIn = async (req, res) => {
         };
         return res.json(response);
       });
-
-      // this return should never be hit
-      Sentry.captureMessage(`AUTHENTICATION ERROR: Unexpected return hit ${user}`);
-      return res.json(JSON.stringify({ login: 'failed' }));
+      return null;
     });
-
-    // this return should never be hit
-    Sentry.captureMessage(`AUTHENTICATION ERROR: Unexpected return hit ${user}`);
-    return res.json(JSON.stringify({ login: 'failed' }));
-  });
+    return null;
+  })(req, res);
 };

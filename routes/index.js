@@ -15,6 +15,7 @@ const competitionController = require('../controllers/competitionController');
 const mail = require('../controllers/mailController');
 const cron = require('../controllers/cronController');
 const email = require('../controllers/email/email');
+const authentication = require('../controllers/authentication/authentication');
 const importData = require('../controllers/email/sampleData');
 
 const User = mongoose.model('User');
@@ -59,42 +60,8 @@ router.get('/userVerification/:userID/:verificationToken', (req, res) => {
 });
 // ----------------------------------------------
 
-router.post('/signin', function(req, res, next) {
-  passport.authenticate('local', function(err, user, info) {
-    if (err) {
-      return next(err);
-    }
-
-    if (!user) {
-      return res.json(JSON.stringify({ login: 'failed' }));
-    }
-
-    //check if user is verified
-    console.log(user.verified);
-    if (user.verified == 'false' || user.verified == false) {
-      return res.json(JSON.stringify({ login: 'notVerified' }));
-    } else {
-      req.logIn(user, function(err) {
-        if (err) return console.log(err);
-        var cert = process.env.JWT_KEY;
-
-        const ExpirationInSections = 60 * 60 * 24 * 7; //token lasts for 7 days
-        let tokenExp = new Date();
-        tokenExp.setSeconds(tokenExp.getSeconds() + ExpirationInSections);
-        tokenExp = new Date(tokenExp).getTime();
-
-        jwt.sign({ userID: user._id }, cert, { expiresIn: ExpirationInSections }, function(err, token) {
-          if (err) return res.send(err);
-          let response = {
-            token: token,
-            userID: user._id,
-            tokenExp: tokenExp,
-          };
-          return res.json(response);
-        });
-      });
-    }
-  })(req, res, next);
+router.post('/signin', (req, res) => {
+  authentication.signIn(req, res);
 });
 
 router.post('/verifyToken', function(req, res, next) {
