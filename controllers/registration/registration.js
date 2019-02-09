@@ -4,7 +4,7 @@ const Sentry = require('@sentry/node');
 
 const User = mongoose.model('User');
 const Competition = mongoose.model('Competition');
-const mail = require('../mailController');
+const mail = require('../email/email');
 
 const { rootURL } = global;
 const authenticate = User.authenticate();
@@ -26,10 +26,15 @@ exports.userVerification = async (req, res) => {
 
       // if users verification code matches the one originally assigned then set user to verified
     } else if (user.verificationString === req.params.verificationToken) {
-      const verifiedUser = user;
-      verifiedUser.verified = true;
-      user.save();
-      res.redirect(`${rootURL}verified?success`);
+      // test if user is signed up for a competition and if so take them straight to dashboard
+      if (user.competitions.length > 0 && user.verified === true) {
+        res.redirect(`${rootURL}dashboard`);
+      } else {
+        const verifiedUser = user;
+        verifiedUser.verified = true;
+        user.save();
+        res.redirect(`${rootURL}verified?success`);
+      }
     } else {
       // if the users verification code did not match
       res.redirect(`${rootURL}verified?error_code_2`);
