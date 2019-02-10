@@ -9,6 +9,7 @@
   "dependencies": {
     "@sendgrid/mail": "^6.3.1",
     "@sentry/node": "^4.5.3",
+    "async": "^2.6.1",
     "body-parser": "^1.18.3",
     "connect-mongo": "^2.0.3",
     "cookie-parser": "~1.4.3",

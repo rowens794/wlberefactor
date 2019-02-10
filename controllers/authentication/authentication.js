@@ -17,7 +17,6 @@ exports.signIn = async (req, res) => {
       return res.json(JSON.stringify({ login: 'failed' }));
     }
     if (!user) return res.json(JSON.stringify({ login: 'failed' }));
-    if (user.verified === 'false' || user.verified === false) return res.json(JSON.stringify({ login: 'notVerified' }));
 
     await req.logIn(user, async (loginError) => {
       if (loginError) {
@@ -36,10 +35,12 @@ exports.signIn = async (req, res) => {
           Sentry.captureMessage(`AUTHENTICATION ERROR: JWT Sign Error ${jwtSignError} `);
           return res.json(JSON.stringify({ login: 'failed' }));
         }
+
         const response = {
           token,
           userID: user.id,
           tokenExp,
+          accountVerified: user.verified,
         };
         return res.json(response);
       });

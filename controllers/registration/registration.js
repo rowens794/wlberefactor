@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const md5 = require('md5');
 const Sentry = require('@sentry/node');
+const jwt = require('jsonwebtoken');
 
 const User = mongoose.model('User');
 const Competition = mongoose.model('Competition');
@@ -155,4 +156,14 @@ exports.userRegistration = (req, res) => {
       },
     );
   }
+};
+
+exports.resendVerificationEmail = (req, res) => {
+  const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
+
+  User.findById(userTokenID.userID, (err, user) => {
+    if (err) res.json({ status: 'failed' });
+    mail.sendWelcomeEmail(user.email, user.id, user.name, user.verificationString);
+    res.json({ message: 'success' });
+  });
 };

@@ -13,6 +13,7 @@ exports.sendWelcomeEmail = async (email, userID, name, verificationString) => {
     userID,
     name,
     verificationString,
+    rootURL,
     serverURL,
   });
 
@@ -44,6 +45,7 @@ exports.sendJoinCompEmail = async (email, name, invitor, competitionID) => {
     invitor,
     competitionID,
     rootURL,
+    serverURL,
   });
 
   const text = htmlToText.fromString(msg, {
@@ -73,6 +75,7 @@ exports.sendYouveBeenAddedEmail = async (email, name, invitor, competitionName) 
     name,
     invitor,
     competitionName,
+    rootURL,
     serverURL,
   });
 
@@ -101,6 +104,8 @@ exports.sendPasswordReset = async (email, link) => {
   const emailObj = new Email();
   const msg = await emailObj.render('passwordReset', {
     link,
+    rootURL,
+    serverURL,
   });
 
   const text = htmlToText.fromString(msg, {
@@ -129,6 +134,8 @@ exports.sendReminderEmail = async (name, email, competitionName) => {
   const msg = await emailObj.render('reminderEmail', {
     name,
     competitionName,
+    rootURL,
+    serverURL,
   });
 
   const text = htmlToText.fromString(msg, {
@@ -160,6 +167,8 @@ exports.sendWeeklyReminder = async (focusUser, sortedUsers, competitionInfo, com
     sortedUsers,
     competitionInfo,
     competitionName,
+    rootURL,
+    serverURL,
   });
 
   const text = htmlToText.fromString(msg, {
@@ -210,6 +219,8 @@ exports.sendInterimAnnouncement = async (focusUser, sortedUsers, competitionInfo
       name: user.name,
       periodLoss: user[lookupString],
       totalLoss: user.totalLoss,
+      rootURL,
+      serverURL,
     });
   });
 
@@ -325,6 +336,8 @@ exports.sendWinnerAnnouncement = async (focusUser, sortedUsers, competitionInfo,
     lookback,
     periodEnd: moment(new Date()).format('M/D/YY'),
     winnersObj,
+    rootURL,
+    serverURL,
   });
 
   const text = htmlToText.fromString(msg, {

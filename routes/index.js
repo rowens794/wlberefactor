@@ -5,14 +5,10 @@ const router = express.Router(); // routing
 
 // my code imports
 const registration = require('../controllers/registration/registration');
-const cron = require('../controllers/cronController');
+//const cron = require('../controllers/cronController');
+const cron = require('../controllers/cron/cron');
 const authentication = require('../controllers/authentication/authentication');
 const competition = require('../controllers/competition/competition');
-
-// for testing
-const mongoose = require('mongoose');
-const User = mongoose.model('User');
-const Competition = mongoose.model('Competition');
 
 /* ----------------- Test if Server is Live ------------------ */
 router.get('/', (req, res) => {
@@ -21,21 +17,7 @@ router.get('/', (req, res) => {
 
 /* ----------------- test ------------------ */
 router.get('/test', async (req, res) => {
-  var newUser = null;
-  await User.find({ email: 'rowens7ff94@gmail.com' }, (userRetrievalError, user) => {
-    if (userRetrievalError) {
-      res.json({ status: 'failed' });
-      console.log('error');
-    } else if (user.length === 0) {
-      console.log(user);
-      console.log("user doens't exist");
-    } else {
-      console.log('success');
-      console.log(user);
-      newUser = user;
-    }
-  });
-  res.send(newUser);
+  res.send('test');
 });
 
 // -------REGISTRATION RELATED ROUTES-------------
@@ -50,6 +32,10 @@ router.post('/registerfrominvite/:compID', (req, res) => {
 
 router.get('/userVerification/:userID/:verificationToken', (req, res) => {
   registration.userVerification(req, res);
+});
+
+router.post('/resendVerificationEmail', (req, res) => {
+  registration.resendVerificationEmail(req, res);
 });
 
 // -------AUTHENTICATION RELATED ROUTES-------------
