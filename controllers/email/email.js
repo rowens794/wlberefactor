@@ -177,7 +177,7 @@ exports.sendWeeklyReminder = async (focusUser, sortedUsers, competitionInfo, com
 
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   const emailMsg = {
-    to: focusUser.email,
+    to: focusUser[1],
     bcc: 'emails@flippingthescales.com',
     from: 'Ryan@flippingthescales.com',
     subject: `Weekly Update for ${competitionName}`,
@@ -243,7 +243,7 @@ exports.sendInterimAnnouncement = async (focusUser, sortedUsers, competitionInfo
 
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   const emailMsg = {
-    to: focusUser.email,
+    to: focusUser[1],
     bcc: 'emails@flippingthescales.com',
     from: 'Ryan@flippingthescales.com',
     subject: `Interim Prize Awarded for ${competitionName}`,
@@ -268,6 +268,7 @@ exports.sendWinnerAnnouncement = async (focusUser, sortedUsers, competitionInfo,
       prize: competitionInfo.grandPrizes[0],
     },
   };
+
   winnersObj.second = {};
   winnersObj.third = {};
 
@@ -297,7 +298,7 @@ exports.sendWinnerAnnouncement = async (focusUser, sortedUsers, competitionInfo,
 
   // determine if focusUser is winning
   let focusUserIsLeader = false;
-  if (focusUser.email === sortedUsers[0].email) {
+  if (focusUser[1] === sortedUsers[0].email) {
     focusUserIsLeader = true;
   }
 
@@ -346,10 +347,10 @@ exports.sendWinnerAnnouncement = async (focusUser, sortedUsers, competitionInfo,
 
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   const emailMsg = {
-    to: focusUser.email,
+    to: focusUser[1],
     bcc: 'emails@flippingthescales.com',
     from: 'Ryan@flippingthescales.com',
-    subject: `Interim Prize Awarded for ${competitionName}`,
+    subject: `A Winner is Crowned for ${competitionName}`,
     text,
     html: msg,
   };
