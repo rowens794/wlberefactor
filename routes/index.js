@@ -5,7 +5,6 @@ const router = express.Router(); // routing
 
 // my code imports
 const registration = require('../controllers/registration/registration');
-//const cron = require('../controllers/cronController');
 const cron = require('../controllers/cron/cron');
 const authentication = require('../controllers/authentication/authentication');
 const competition = require('../controllers/competition/competition');
