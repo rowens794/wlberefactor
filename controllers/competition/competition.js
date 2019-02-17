@@ -51,25 +51,32 @@ function createCompetitionDocument(competitionDetails, adminUser) {
 
 function cleanInvitedParticipants(invitedPlayers, adminUser) {
   // takes the list of players in a competition and removes duplicate users
-  const adminEmail = adminUser.email;
+  const adminEmail = normalizeEmail(adminUser.email);
+
+  // duplicate list with only cleaned emails
+  var cleanedEmails = [];
+  for (let i = 0; i < invitedPlayers.length; i += 1) {
+    const email = normalizeEmail(invitedPlayers[i][1]);
+    cleanedEmails.push([invitedPlayers[i][0], email]);
+  }
 
   // remove admin from invitedPlayers list if they were accidentally added
-  for (let i = 0; i < invitedPlayers.length; i += 1) {
-    if (normalizeEmail(adminEmail) === normalizeEmail(invitedPlayers[i][1])) {
-      invitedPlayers.splice(i, 1);
-    }
+  var adminRemoved = [];
+  for (let i = 0; i < cleanedEmails.length; i += 1) {
+    if (cleanedEmails[i][1] !== adminEmail) adminRemoved.push(cleanedEmails[i]);
   }
 
   // remove any duplicate entries in invitedPlayers
-  for (let i = 0; i < invitedPlayers.length; i += 1) {
-    for (let j = i + 1; j < invitedPlayers.length; j += 1) {
-      if (normalizeEmail(invitedPlayers[i][1]) === normalizeEmail(invitedPlayers[j][1])) {
-        invitedPlayers.splice(j, 1);
-      }
+  var noDuplicateEmails = [];
+  var emailsOnly = [];
+  for (let i = 0; i < adminRemoved.length; i += 1) {
+    if (emailsOnly.indexOf(adminRemoved[i][1]) === -1) {
+      noDuplicateEmails.push(adminRemoved[i]);
+      emailsOnly.push(adminRemoved[i][1]);
     }
   }
 
-  return invitedPlayers;
+  return noDuplicateEmails;
 }
 
 async function inviteeNotification(invitedPlayers, competition) {
@@ -79,17 +86,19 @@ async function inviteeNotification(invitedPlayers, competition) {
       if (err) {
         Sentry.captureMessage(`COMPETITION: Error attempting to retrieve user record from db: ${invitedPlayer[1]}`);
       } else if (participant[0]) {
+        const participantDoc = participant[0];
+
         // 1. send join notification
-        await mail.sendYouveBeenAddedEmail(participant[0].email, participant[0].name, competition.Players[0][0], competition.CompetitionName);
+        await mail.sendYouveBeenAddedEmail(participantDoc.email, participantDoc.name, competition.Players[0][0], competition.CompetitionName);
 
         // 2. add player to competition
-        await competition.Players.push([participant[0].name, participant[0].email, competition.DateObj]);
+        await competition.Players.push([participantDoc.name, participantDoc.email, competition.DateObj]);
         await competition.markModified('Players');
 
         // 3. add competition to player
-        await participant.competitions.push({ id: competition.id, name: competition.CompetitionName, admin: false });
-        await participant.markModified('competitions');
-        await participant.save();
+        participantDoc.competitions.push({ id: competition.id, name: competition.CompetitionName, admin: false });
+        participantDoc.markModified('competitions');
+        participantDoc.save();
 
         // 4. return competition object
         return competition;
@@ -206,32 +215,32 @@ exports.updateComp = async (req, res) => {
 
 exports.createCompetition = async (req, res) => {
   // 1. verify the user token and store the ID'd user as the admin
-  let adminUser = null;
   const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
-  await User.findById(userTokenID.userID, (userRetrievalError, user) => {
+
+  await User.findById(userTokenID.userID, async (userRetrievalError, user) => {
     if (userRetrievalError) {
-      Sentry.captureMessage(`COMPETITION: Cannon retrieve user from jwt provided: ${userTokenID.userID}`);
+      Sentry.captureMessage(`COMPETITION: Cannot retrieve user from jwt provided: ${userTokenID.userID}`);
       res.json({ status: 'failed' });
     } else {
-      adminUser = user;
+      const adminUser = user;
+
+      // 2. Create the competition document
+      let competitionDoc = await createCompetitionDocument(req.body.competitionInfo, adminUser);
+
+      // 3. Clean the list of invited participants
+      const invitedPlayers = await cleanInvitedParticipants(req.body.competitionInfo.Players, adminUser);
+
+      // 4. Notify or Invite players that were selected to join the competition
+      competitionDoc = await inviteeNotification(invitedPlayers, competitionDoc);
+
+      // 5. Add the competition to the Admin user's DB document
+      await addCompToAdmin(adminUser.id, competitionDoc.id, competitionDoc.CompetitionName);
+
+      // 6. Save the Competition and Send success response
+      await competitionDoc.save();
+      res.json({ status: 'success' });
     }
   });
-
-  // 2. Create the competition document
-  let competitionDoc = await createCompetitionDocument(req.body.competitionInfo, adminUser);
-
-  // 3. Clean the list of invited participants
-  const invitedPlayers = await cleanInvitedParticipants(req.body.competitionInfo.Players, adminUser);
-
-  // 4. Notify or Invite players that were selected to join the competition
-  competitionDoc = await inviteeNotification(invitedPlayers, competitionDoc);
-
-  // 5. Add the competition to the Admin user's DB document
-  await addCompToAdmin(adminUser.id, competitionDoc.id, competitionDoc.CompetitionName);
-
-  // 6. Save the Competition and Send success response
-  await competitionDoc.save();
-  res.json({ status: 'success' });
 };
 
 exports.addUserToCompetition = async (req, res) => {
@@ -318,8 +327,6 @@ exports.addUserToCompetition = async (req, res) => {
 
 exports.addUserToCompFromEmail = async (req, res) => {
   // collect initial data
-
-  console.log(req.body);
 
   const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
   var compID = req.body.competitionId._id;
