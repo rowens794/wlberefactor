@@ -98,13 +98,13 @@ router.post('/addCompByID', (req, res) => {
 
 // -------CRON RELATED ROUTES-------------
 
-router.get('/cronpost', function(req, res) {
-  //cron post will provide updates to competitors the day after each weeks completion
+router.get('/cronpost', (req, res) => {
+  // cron post will provide updates to competitors the day after each weeks completion
   cron.sendReviewEmails(req, res);
 });
 
-router.get('/cronremind', function(req, res) {
-  //cron post will provide updates to competitors the day after each weeks completion
+router.get('/cronremind', (req, res) => {
+  // cron post will provide updates to competitors the day after each weeks completion
   cron.sendRemindEmails(req, res);
 });
 

@@ -44,6 +44,8 @@ function createCompetitionDocument(competitionDetails, adminUser) {
     DateObj: dates,
     Invites: competitionDetails.Players,
     Admin: adminObject.email,
+    LastCompetitionActivity: new Date(),
+    CompetitionCreationDate: new Date(),
   });
 
   return competition;
@@ -73,6 +75,8 @@ function cleanInvitedParticipants(invitedPlayers, adminUser) {
     if (emailsOnly.indexOf(adminRemoved[i][1]) === -1) {
       noDuplicateEmails.push(adminRemoved[i]);
       emailsOnly.push(adminRemoved[i][1]);
+    } else {
+      return false;
     }
   }
 
@@ -137,7 +141,7 @@ function verifyAuthority(userDocument, competitionID) {
 exports.getCompData = async (req, res) => {
   // retrieves competition data based on comp ID
   const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
-  User.findById(userTokenID.userID, (userRetrievalError) => {
+  User.findById(userTokenID.userID, (userRetrievalError, user) => {
     if (userRetrievalError) {
       Sentry.captureMessage(`COMPETITION: Cannon retrieve user from jwt provided: ${userTokenID.userID}`);
       res.json({ status: 'failed' });
@@ -147,6 +151,13 @@ exports.getCompData = async (req, res) => {
         Sentry.captureMessage(`COMPETITION: Cannon retrieve competition from db: ${req.body.competitionId}`);
         res.json({ status: 'failed' });
       }
+      const retrievedUser = user;
+      const retrievedCompetetition = competition;
+      retrievedUser.lastActiveCompetition = req.body.competitionId;
+      retrievedUser.lastSignIn = new Date();
+      retrievedUser.save();
+      retrievedCompetetition.LastCompetitionActivity = new Date();
+      retrievedCompetetition.save();
       res.json(competition);
     });
   });
@@ -229,6 +240,7 @@ exports.createCompetition = async (req, res) => {
 
       // 3. Clean the list of invited participants
       const invitedPlayers = await cleanInvitedParticipants(req.body.competitionInfo.Players, adminUser);
+      if (!invitedPlayers) res.json({ status: 'duplicateEmails' });
 
       // 4. Notify or Invite players that were selected to join the competition
       competitionDoc = await inviteeNotification(invitedPlayers, competitionDoc);
@@ -316,7 +328,6 @@ exports.addUserToCompetition = async (req, res) => {
         response = { status: 'user already enrolled' };
       }
     } else {
-      console.log('mail invite sent');
       mail.sendJoinCompEmail(newUserEmail, newUserName, adminUser.name, competitionDoc.id);
     }
   }

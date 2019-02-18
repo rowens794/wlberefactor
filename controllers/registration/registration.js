@@ -132,6 +132,7 @@ exports.userRegistration = (req, res) => {
         verificationString: md5(Math.random() * 100000000),
         emailsEnabled: true,
         signUpDate: new Date(),
+        lastSignIn: new Date(),
       },
       req.body.password,
       (userRegistrationError, user) => {
