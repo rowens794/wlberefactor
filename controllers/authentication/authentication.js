@@ -25,8 +25,8 @@ exports.signIn = async (req, res) => {
       }
 
       const cert = process.env.JWT_KEY;
-      //const ExpirationInSections = 60 * 60 * 24 * 2000; // token lasts for 2000 days
-      const ExpirationInSections = 10; // token lasts for 2000 days
+      const ExpirationInSections = 60 * 60 * 24 * 2000; // token lasts for 2000 days
+      //const ExpirationInSections = 10; // token lasts for 2000 days
 
       let tokenExp = new Date();
       tokenExp.setSeconds(tokenExp.getSeconds() + ExpirationInSections);
