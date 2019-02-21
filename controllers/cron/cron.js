@@ -1,3 +1,6 @@
+// https://cron-job.org/en/members/jobs/
+// cron jobs activated at the link above
+
 /* eslint-disable no-await-in-loop */
 const mongoose = require('mongoose');
 const moment = require('moment');

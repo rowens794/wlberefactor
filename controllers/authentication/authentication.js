@@ -25,7 +25,9 @@ exports.signIn = async (req, res) => {
       }
 
       const cert = process.env.JWT_KEY;
-      const ExpirationInSections = 60 * 60 * 24 * 7; // token lasts for 7 days
+      //const ExpirationInSections = 60 * 60 * 24 * 2000; // token lasts for 2000 days
+      const ExpirationInSections = 10; // token lasts for 2000 days
+
       let tokenExp = new Date();
       tokenExp.setSeconds(tokenExp.getSeconds() + ExpirationInSections);
       tokenExp = new Date(tokenExp).getTime();
@@ -56,19 +58,39 @@ exports.verifyToken = (req, res) => {
 };
 
 exports.getUserData = (req, res) => {
-  const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
-  User.findById(userTokenID.userID, (err, user) => {
-    if (err) res.json({ status: 'failed' });
-    res.json(user);
-  });
+  if (req.body.token === null) {
+    res.json({ status: 'tokenExpired' });
+  } else {
+    const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
+
+    // capture expired token and force re-login
+    if (userTokenID.exp <= userTokenID.iat) {
+      res.json({ status: 'tokenExpired' });
+    } else {
+      User.findById(userTokenID.userID, (err, user) => {
+        if (err) res.json({ status: 'failed' });
+        res.json(user);
+      });
+    }
+  }
 };
 
 exports.getUserCompData = (req, res) => {
-  const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
-  User.findById(userTokenID.userID, (err, user) => {
-    if (err) res.json({ status: 'failed' });
-    res.json(user);
-  });
+  if (req.body.token === null) {
+    res.json({ status: 'tokenExpired' });
+  } else {
+    const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
+
+    // capture expired token and force re-login
+    if (userTokenID.exp <= userTokenID.iat) {
+      res.json({ status: 'tokenExpired' });
+    } else {
+      User.findById(userTokenID.userID, (err, user) => {
+        if (err) res.json({ status: 'failed' });
+        res.json(user);
+      });
+    }
+  }
 };
 
 exports.forgotPassword = (req, res) => {
