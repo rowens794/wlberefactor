@@ -68,7 +68,7 @@ exports.userRegistrationFromInvite = (req, res) => {
           res.json({
             message: 'A user with the given email address is already registered',
           });
-          Sentry.captureMessage(`USER REGISTRATION: Unable to register user with email: ${req.body.email}`);
+          Sentry.captureMessage(`USER REGISTRATION: Unable to register user from invite with email: ${req.body.email} - ${userRegistrationError}`);
         } else {
           // authenticate the user
           authenticate('username', 'password', (authenticationError) => {
@@ -140,7 +140,7 @@ exports.userRegistration = (req, res) => {
           res.json({
             message: 'A user with the given email address is already registered',
           });
-          Sentry.captureMessage(`USER REGISTRATION: Unable to register user with email: ${req.body.email}`);
+          Sentry.captureMessage(`USER REGISTRATION: Unable to register user with email: ${req.body.email} - ${userRegistrationError}`);
         } else {
           // authenticate the user
           authenticate('username', 'password', (authenticationError) => {
