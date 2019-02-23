@@ -160,11 +160,19 @@ exports.userRegistration = (req, res) => {
 };
 
 exports.resendVerificationEmail = (req, res) => {
-  const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
+  console.log(mongoose.connection.readyState);
+  console.log(req.body);
+  if (req.body.token === null) {
+    res.json({ status: 'tokenExpired' });
+  } else {
+    const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
+    console.log(userTokenID.userID);
 
-  User.findById(userTokenID.userID, (err, user) => {
-    if (err) res.json({ status: 'failed' });
-    mail.sendWelcomeEmail(user.email, user.id, user.name, user.verificationString);
-    res.json({ message: 'success' });
-  });
+    User.findById(userTokenID.userID, (err, user) => {
+      if (err) res.json({ status: 'failed' });
+      console.log(user);
+      mail.sendWelcomeEmail(user.email, user.id, user.name, user.verificationString);
+      res.json({ message: 'success' });
+    });
+  }
 };
