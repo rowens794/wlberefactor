@@ -16,7 +16,6 @@ exports.signIn = async (req, res) => {
     if (authenticationError) {
       return res.json(JSON.stringify({ login: 'failed' }));
     }
-    console.log(user);
     if (!user) return res.json(JSON.stringify({ login: 'failed' }));
 
     await req.logIn(user, async (loginError) => {
