@@ -161,10 +161,11 @@ exports.sendRemindEmails = async (req, res) => {
 
 function testWeighIns(currentPeriod, previousPeriod) {
   if (currentPeriod && previousPeriod) {
-    var totalLoss = (((currentPeriod - previousPeriod) / previousPeriod) * 100).toFixed(2);
-  } else {
-    var totalLoss = 'N/A';
+    const totalLoss = (((currentPeriod - previousPeriod) / previousPeriod) * 100).toFixed(2);
+    return totalLoss;
   }
+
+  const totalLoss = 'N/A';
   return totalLoss;
 }
 
@@ -191,10 +192,10 @@ function getUserInfo(competition, refDate) {
     const initialWeighIn = competition.Players[i][2][startDate];
 
     // test the values of weighins to ensure a weighin wasn't missed
-    const weeklyLoss = testWeighIns(mostRecentWeighin, previousWeekWeighin);
-    const twoWeekLoss = testWeighIns(mostRecentWeighin, twoWeeksAgoWeighin);
-    const fourWeekLoss = testWeighIns(mostRecentWeighin, fourWeeksAgoWeighin);
-    const totalLoss = testWeighIns(mostRecentWeighin, initialWeighIn);
+    var weeklyLoss = testWeighIns(mostRecentWeighin, previousWeekWeighin);
+    var twoWeekLoss = testWeighIns(mostRecentWeighin, twoWeeksAgoWeighin);
+    var fourWeekLoss = testWeighIns(mostRecentWeighin, fourWeeksAgoWeighin);
+    var totalLoss = testWeighIns(mostRecentWeighin, initialWeighIn);
 
     userList.push({
       name: competition.Players[i][0],
@@ -212,6 +213,7 @@ function getUserInfo(competition, refDate) {
 function sortCompetitionUserInfo(userInfo, period) {
   // function will sort the competitionUserInfo object in one of four ways
   // by 1 week loss, 2 week loss, 4 week loss, or by total loss
+
   var key = '';
   switch (period) {
     case 'one':
@@ -228,6 +230,9 @@ function sortCompetitionUserInfo(userInfo, period) {
   }
 
   userInfo.sort((a, b) => {
+    if (a[key] == 'N/A' || b[key] == 'N/A') {
+      return 1;
+    }
     return parseFloat(a[key]) - parseFloat(b[key]);
   });
 
@@ -237,7 +242,7 @@ function sortCompetitionUserInfo(userInfo, period) {
 const determineEmailTypeToSend = async (competition, player) => {
   var competitionInfo = collectCompetitionInfo(competition);
   const refDate = referenceDate;
-  const players = getUserInfo(competition, competitionInfo, refDate);
+  const players = getUserInfo(competition, refDate);
   // if yesterday was last day of competititon then send winner announcement
   if (refDate === competitionInfo.competitionEndDate) {
     const focusUser = player;

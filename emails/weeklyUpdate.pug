@@ -22,8 +22,8 @@ h2.title #{competitionName} - Weekly Update
       tr.grey
         td(height=20) #{index+1}. 
         td.alignLeft(height=20) #{user.name}
-        td(height=20) #{user.weeklyLoss}#{user.weeklyLoss='N/A' ? '' : '%'}
-        td(height=20) #{user.totalLoss}#{user.totalLoss='N/A' ? '' : '%'}
+        td(height=20) #{user.weeklyLoss}#{user.weeklyLoss=='N/A' ? '' : '%'}
+        td(height=20) #{user.totalLoss}#{user.totalLoss=='N/A' ? '' : '%'}
   
   .spacer
 
