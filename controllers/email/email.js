@@ -5,8 +5,8 @@ const Sentry = require('@sentry/node');
 const moment = require('moment');
 
 let { rootURL, serverURL } = global;
-rootURL = 'http://localhost:3000/';
-serverURL = 'http://localhost:3001/';
+// rootURL = 'http://localhost:3000/';
+// serverURL = 'http://localhost:3001/';
 
 exports.sendYouAreSignedUp = async (email, userID, name) => {
   const emailObj = new Email();
