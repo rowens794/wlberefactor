@@ -34,6 +34,7 @@ exports.userVerification = async (req, res) => {
         const verifiedUser = user;
         verifiedUser.verified = true;
         user.save();
+        mail.sendYouAreSignedUp(user.email, userID, user.name);
         res.redirect(`${rootURL}verified?success`);
       }
     } else {

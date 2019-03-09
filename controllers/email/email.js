@@ -4,7 +4,38 @@ const htmlToText = require('html-to-text');
 const Sentry = require('@sentry/node');
 const moment = require('moment');
 
-const { rootURL, serverURL } = global;
+let { rootURL, serverURL } = global;
+
+exports.sendYouAreSignedUp = async (email, userID, name) => {
+  const emailObj = new Email();
+  const msg = await emailObj.render('youAreIn', {
+    email,
+    userID,
+    name,
+    rootURL,
+    serverURL,
+  });
+
+  const text = htmlToText.fromString(msg, {
+    wordwrap: 130,
+  });
+
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  const emailMsg = {
+    to: email,
+    bcc: 'emails@flippingthescales.com',
+    from: 'Ryan@flippingthescales.com',
+    subject: 'You are All Setup + Tips for Shedding Pounds',
+    text,
+    html: msg,
+  };
+
+  sgMail.send(emailMsg, (error) => {
+    if (error) {
+      Sentry.captureMessage(`EMAIL SEND ERROR: Unsuccessful send of sendWelcomeEmail to ${email}`);
+    }
+  });
+};
 
 exports.sendWelcomeEmail = async (email, userID, name, verificationString) => {
   const emailObj = new Email();
