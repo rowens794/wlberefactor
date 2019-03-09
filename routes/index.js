@@ -8,6 +8,7 @@ const registration = require('../controllers/registration/registration');
 const cron = require('../controllers/cron/cron');
 const authentication = require('../controllers/authentication/authentication');
 const competition = require('../controllers/competition/competition');
+const redirects = require('../controllers/redirects/redirects');
 
 /* ----------------- Test if Server is Live ------------------ */
 router.get('/', (req, res) => {
@@ -106,6 +107,12 @@ router.get('/cronpost', (req, res) => {
 router.get('/cronremind', (req, res) => {
   // cron post will provide updates to competitors the day after each weeks completion
   cron.sendRemindEmails(req, res);
+});
+
+// -------LINK TRACKING AND REDIRECTS-------------
+router.get('/beachbodyod', (req, res) => {
+  // track email link click
+  redirects.beachbodyod(req, res);
 });
 
 module.exports = router;

@@ -55,6 +55,7 @@ mongoose.connect(DB_URI, { useNewUrlParser: true });
 // Import models
 require('./models/userSchema');
 require('./models/competitionSchema');
+require('./models/clickTrackingSchema');
 const User = require('./models/userSchema');
 
 // allow CORS

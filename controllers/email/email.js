@@ -5,15 +5,19 @@ const Sentry = require('@sentry/node');
 const moment = require('moment');
 
 let { rootURL, serverURL } = global;
+rootURL = 'http://localhost:3000/';
+serverURL = 'http://localhost:3001/';
 
 exports.sendYouAreSignedUp = async (email, userID, name) => {
   const emailObj = new Email();
+  const linkURL = `${serverURL}beachbodyod?id=${userID}`;
   const msg = await emailObj.render('youAreIn', {
     email,
     userID,
     name,
     rootURL,
     serverURL,
+    linkURL,
   });
 
   const text = htmlToText.fromString(msg, {
@@ -32,7 +36,7 @@ exports.sendYouAreSignedUp = async (email, userID, name) => {
 
   sgMail.send(emailMsg, (error) => {
     if (error) {
-      Sentry.captureMessage(`EMAIL SEND ERROR: Unsuccessful send of sendWelcomeEmail to ${email}`);
+      Sentry.captureMessage(`EMAIL SEND ERROR: Unsuccessful send of sendYouAreSignedUp to ${email}`);
     }
   });
 };
