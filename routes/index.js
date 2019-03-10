@@ -9,6 +9,7 @@ const cron = require('../controllers/cron/cron');
 const authentication = require('../controllers/authentication/authentication');
 const competition = require('../controllers/competition/competition');
 const redirects = require('../controllers/redirects/redirects');
+const admin = require('../controllers/admin/admin.js');
 
 /* ----------------- Test if Server is Live ------------------ */
 router.get('/', (req, res) => {
@@ -113,6 +114,12 @@ router.get('/cronremind', (req, res) => {
 router.get('/beachbodyod', (req, res) => {
   // track email link click
   redirects.beachbodyod(req, res);
+});
+
+// -------ADMIN DASHBOARD-------------
+router.post('/admin', (req, res) => {
+  // track email link click
+  admin.admin(req, res);
 });
 
 module.exports = router;
