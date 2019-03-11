@@ -5,26 +5,42 @@ const User = mongoose.model('User');
 const Competition = mongoose.model('Competition');
 const ClickTracking = mongoose.model('ClickTracking');
 
-function compAnalysis(allComps) {
-  var compList = [];
-  allComps.forEach((competition) => {
-    compList.push({
-      name: competition.CompetitionName,
-      players: competition.Players,
-      invites: competition.Invites,
-      id: competition.id,
-      creationDate: moment(new Date(competition.CompetitionCreationDate)).format('M/D/YY'),
-      startDate: moment(new Date(competition.StartDate)).format('M/D/YY'),
-      length: competition.CompetitionLength,
-      lastActivity: moment(new Date(competition.LastCompetitionActivity)).format('M/D/YY'),
-      numberOfParticipants: competition.Players.length,
-      payout: competition.Payout,
-      entryFee: competition.EntryFee,
-      interimPrize: competition.InterimPrize,
-    });
-  });
-  allComps.sort((a, b) => {
-    return new Date(b.lastActivity) - new Date(a.lastActivity);
+async function asyncForEach(array, callback) {
+  var processedObj = [];
+  for (let index = 0; index < array.length; index += 1) {
+    let nextComp = await callback(array[index]);
+    processedObj.push(nextComp);
+  }
+  return processedObj;
+}
+
+async function createCompetitionObj(competition) {
+  const compObj = {
+    name: competition.CompetitionName,
+    players: competition.Players,
+    invites: competition.Invites,
+    id: competition.id,
+    creationDate: moment(new Date(competition.CompetitionCreationDate)).format('M/D/YY'),
+    startDate: moment(new Date(competition.StartDate)).format('M/D/YY'),
+    length: competition.CompetitionLength,
+    lastActivity: moment(new Date(competition.LastCompetitionActivity)).format('M/D/YY'),
+    numberOfParticipants: competition.Players.length,
+    payout: competition.Payout,
+    entryFee: competition.EntryFee,
+    interimPrize: competition.InterimPrize,
+  };
+
+  return compObj;
+}
+
+async function compAnalysis(allComps) {
+  const compList = await asyncForEach(allComps, createCompetitionObj);
+
+  compList.sort((a, b) => {
+    if (a.lastActivity === 'Invalid date' && b.lastActivity === 'Invalid date') return 0;
+    else if (a.lastActivity === 'Invalid date') return 1;
+    else if (b.lastActivity === 'Invalid date') return -1;
+    else return new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime();
   });
 
   return compList;
@@ -94,20 +110,22 @@ exports.admin = async (req, res) => {
       allUsers = userAnalysis(users);
     });
 
-    await Competition.find({}, (err, competitions) => {
-      allComps = compAnalysis(competitions);
+    await Competition.find({}, async (err, competitions) => {
+      allComps = await compAnalysis(competitions);
     });
 
     await ClickTracking.find({}, (err, clicks) => {
       allClicks = clickAnalysis(clicks);
     });
 
-    res.json({
+    const response = {
       ident: process.env.ADMIN_KEY,
       users: allUsers,
       comps: allComps,
       clicks: allClicks,
-    });
+    };
+
+    res.json(response);
   } else {
     res.json({ login: 'failed' });
   }
