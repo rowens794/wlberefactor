@@ -230,9 +230,9 @@ function sortCompetitionUserInfo(userInfo, period) {
   }
 
   userInfo.sort((a, b) => {
-    if (a[key] == 'N/A' || b[key] == 'N/A') {
-      return 1;
-    }
+    if (a[key] === 'N/A' && b[key] === 'N/A') return -1;
+    if (a[key] === 'N/A') return 1;
+    if (b[key] === 'N/A') return -1;
     return parseFloat(a[key]) - parseFloat(b[key]);
   });
 
