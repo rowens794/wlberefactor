@@ -98,6 +98,10 @@ router.post('/addCompByID', (req, res) => {
   competition.addCompetitionByID(req, res);
 });
 
+router.post('/deleteCompetition', (req, res) => {
+  competition.deleteCompetition(req, res);
+});
+
 // -------CRON RELATED ROUTES-------------
 
 router.get('/cronpost', (req, res) => {

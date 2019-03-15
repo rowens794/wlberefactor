@@ -101,7 +101,7 @@ async function inviteeNotification(invitedPlayers, competition) {
 
         // 3. add competition to player
         participantDoc.competitions.push({ id: competition.id, name: competition.CompetitionName, admin: false });
-        participantDoc.markModified('competitions');
+        participantDoc.markModified();
         participantDoc.save();
 
         // 4. return competition object
@@ -468,4 +468,112 @@ exports.addCompetitionByID = async (req, res) => {
     }
   }
   res.json(response);
+};
+
+async function deleteCompFromUser(userEmail, competitionID) {
+  // function takes in an email and a competitionID and removes that competition from the user with given email
+  await User.find({ email: userEmail }, (errFindingPlayer, playerFound) => {
+    if (errFindingPlayer || playerFound == null) {
+      Sentry.captureMessage(`DELETE COMPETITION: Could not find user ${userEmail}`);
+    } else {
+      const playerDoc = playerFound[0];
+      if (playerDoc.competitions.length > 0) {
+        for (let j = 0; j < playerDoc.competitions.length; j += 1) {
+          if (playerDoc.competitions[j].id === competitionID) {
+            playerDoc.competitions.splice(j, 1);
+            if (playerDoc.lastActiveCompetition === competitionID) {
+              playerDoc.lastActiveCompetition = null;
+            }
+            playerDoc.markModified();
+          }
+        }
+      }
+      playerDoc.save();
+    }
+  });
+}
+
+async function deleteUserFromComp(userEmail, competitionID) {
+  // function takes in an email and a competitionID and removes that competition from the user with given email
+  await Competition.findById(competitionID, (errFindingComp, compDoc) => {
+    if (errFindingComp || compDoc == null) {
+      Sentry.captureMessage(`DELETE COMPETITION: Could not find competition ${competitionID}`);
+    } else {
+      if (compDoc.Players.length > 0) {
+        for (let j = 0; j < compDoc.Players.length; j += 1) {
+          if (compDoc.Players[j][1] === userEmail) {
+            compDoc.Players.splice(j, 1);
+            compDoc.markModified();
+          }
+        }
+      }
+      compDoc.save();
+    }
+  });
+}
+
+exports.deleteCompetition = async (req, res) => {
+  var token = req.body.token;
+  var competitionID = req.body.competitionID;
+  var admin = req.body.admin;
+  var userDoc = null;
+  var competitionLocation = null;
+
+  // check if token is valid
+  const userTokenID = await jwt.verify(token, process.env.JWT_KEY);
+
+  // retrieve userDoc from db
+  if (userTokenID != null) {
+    await User.findById(userTokenID.userID, async (err, user) => {
+      if (err || user == null) {
+        res.json({ status: 'Error: User ID is not valid' });
+      } else {
+        userDoc = user;
+
+        // Determin if user is Admin
+        if (userDoc.competitions.length > 0) {
+          for (let i = 0; i < userDoc.competitions.length; i += 1) {
+            if (userDoc.competitions[i].id === competitionID) {
+              admin = userDoc.competitions[i].admin;
+            }
+          }
+        } else {
+          res.json({ status: 'Error: User is not enrolled in competition' });
+        }
+
+        // check if user is admin
+        if (admin) {
+          // collect competition document
+          await Competition.findById(competitionID, (err, competition) => {
+            if (err || competition == null) {
+              res.json({ status: 'Error: Competition ID is not valid' });
+            } else {
+              const competitionDoc = competition;
+              const playerList = competition.Players;
+
+              // delete competition from all other competition members
+              playerList.forEach(async (player) => {
+                const email = player[1];
+                deleteCompFromUser(email, competitionID);
+              });
+
+              // delete competition
+              competitionDoc.remove();
+            }
+          });
+          res.json({ status: 'success' });
+        } else {
+          // user is not admin delete competition from user
+          deleteCompFromUser(userDoc.email, competitionID);
+          deleteUserFromComp(userDoc.email, competitionID);
+          if (userDoc.lastActiveCompetition === competitionID) {
+            userDoc.lastActiveCompetition = null;
+          }
+          res.json({ status: 'success' });
+        }
+      }
+    });
+  } else {
+    res.json({ status: 'You have been logged out.  Please log back in.' });
+  }
 };
