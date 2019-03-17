@@ -109,9 +109,7 @@ const usersToUpdate = [
 
 exports.updateDB = async (req, res) => {
   var lastSend = moment(new Date()).format('M/D/YYYY');
-  var nextSend = moment(new Date())
-    .add(2, 'days')
-    .format('M/D/YYYY');
+  var nextSend = moment(new Date()).format('M/D/YYYY');
 
   usersToUpdate.forEach((email) => {
     User.find({ email: email }, async (usersRetrievalError, results) => {

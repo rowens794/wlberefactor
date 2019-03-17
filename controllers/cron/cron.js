@@ -341,7 +341,6 @@ const emailSubjects = (emailNumber) => {
 
 const cycleUsers = async (users) => {
   users.forEach(async (user) => {
-    console.log(user.name);
     var userDoc = user;
     const refDate = moment(new Date()).format('M/D/YYYY');
     const emailsEnabled = user.emailsEnabled;
