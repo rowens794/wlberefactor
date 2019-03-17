@@ -34,6 +34,11 @@ const userSchema = new Schema({
   verificationString: String,
   lastActiveCompetition: String,
   lastSignIn: Date,
+  marketingEmails: {
+    lastSend: String,
+    nextSend: String,
+    nextEmailToSend: Number,
+  },
 });
 
 userSchema.plugin(passportLocalMongoose);

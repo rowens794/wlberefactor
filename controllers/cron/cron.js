@@ -319,3 +319,61 @@ exports.sendReviewEmails = async (req, res) => {
 
   res.json({ status: 'success' });
 };
+
+// ------------------------------------------------------------------
+
+const emailSubjects = (emailNumber) => {
+  const EmailSubjects = {
+    1: '',
+    2: 'Your Body is Calorie Burning Sports Car... Or maybe a moped',
+    3: 'The Most Powerful Tool on Your Weightloss Journey',
+    4: 'How to Rev-up Your Calorie Burning Engine',
+    5: 'Just Press Play',
+    6: null,
+    7: null,
+    8: null,
+    9: null,
+    10: null,
+  };
+
+  return EmailSubjects[emailNumber];
+};
+
+const cycleUsers = async (users) => {
+  users.forEach(async (user) => {
+    console.log(user.name);
+    var userDoc = user;
+    const refDate = moment(new Date()).format('M/D/YYYY');
+    const emailsEnabled = user.emailsEnabled;
+    const nextSendDate = user.marketingEmails.nextSend;
+    const emailToSend = user.marketingEmails.nextEmailToSend;
+    const emailSubject = emailSubjects(user.marketingEmails.nextEmailToSend);
+
+    if (emailsEnabled && nextSendDate === refDate && emailSubject !== null) {
+      // if this is not an email day or emails are turned off then skip this user
+      mail.sendMarketingEmail(userDoc.email, userDoc.name, userDoc.id, emailSubject, emailToSend);
+      userDoc.marketingEmails = {
+        lastSend: nextSendDate,
+        nextSend: moment(new Date())
+          .add(2, 'days')
+          .format('M/D/YYYY'),
+        nextEmailToSend: emailToSend + 1,
+      };
+
+      userDoc.markModified();
+      userDoc.save();
+    }
+  });
+};
+
+exports.sendMarketingEmails = async (req, res) => {
+  User.find({}, async (usersRetrievalError, users) => {
+    if (usersRetrievalError) {
+      Sentry.captureMessage('CRON: error retrieving users for marketing email');
+      res.json({ status: 'failed' });
+    }
+    cycleUsers(users);
+  });
+
+  res.json({ status: 'success' });
+};

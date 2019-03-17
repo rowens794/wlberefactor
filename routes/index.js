@@ -10,6 +10,7 @@ const authentication = require('../controllers/authentication/authentication');
 const competition = require('../controllers/competition/competition');
 const redirects = require('../controllers/redirects/redirects');
 const admin = require('../controllers/admin/admin.js');
+const Updates = require('../controllers/Updates.js');
 
 /* ----------------- Test if Server is Live ------------------ */
 router.get('/', (req, res) => {
@@ -114,6 +115,11 @@ router.get('/cronremind', (req, res) => {
   cron.sendRemindEmails(req, res);
 });
 
+router.get('/cronmarketing', (req, res) => {
+  // cron post will provide updates to competitors the day after each weeks completion
+  cron.sendMarketingEmails(req, res);
+});
+
 // -------LINK TRACKING AND REDIRECTS-------------
 router.get('/beachbodyod', (req, res) => {
   // track email link click
@@ -124,6 +130,14 @@ router.get('/beachbodyod', (req, res) => {
 router.post('/admin', (req, res) => {
   // track email link click
   admin.admin(req, res);
+});
+
+router.get('/adminusers', (req, res) => {
+  admin.getUsers(req, res);
+});
+
+router.get('/updateDB', (req, res) => {
+  Updates.updateDB(req, res);
 });
 
 module.exports = router;

@@ -11,7 +11,7 @@ let { rootURL, serverURL } = global;
 exports.sendYouAreSignedUp = async (email, userID, name) => {
   const emailObj = new Email();
   const linkURL = `${serverURL}beachbodyod?id=${userID}`;
-  const msg = await emailObj.render('youAreIn', {
+  const msg = await emailObj.render('MarketingEmail-1', {
     email,
     userID,
     name,
@@ -393,6 +393,36 @@ exports.sendWinnerAnnouncement = async (focusUser, sortedUsers, competitionInfo,
   sgMail.send(emailMsg, (error) => {
     if (error) {
       Sentry.captureMessage(`EMAIL SEND ERROR: Unsuccessful send of sendInterimAnnouncement to ${focusUser.email}`);
+    }
+  });
+};
+
+exports.sendMarketingEmail = async (email, name, userID, subject, marketingEmailNumber) => {
+  const emailObj = new Email();
+  const beachbodyLinkURL = `${serverURL}beachbodyod?id=${userID}`;
+
+  const msg = await emailObj.render(`MarketingEmail-${marketingEmailNumber}`, {
+    name,
+    beachbodyLinkURL,
+  });
+
+  const text = htmlToText.fromString(msg, {
+    wordwrap: 130,
+  });
+
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  const emailMsg = {
+    to: email,
+    bcc: 'emails@flippingthescales.com',
+    from: 'Ryan@flippingthescales.com',
+    subject,
+    text,
+    html: msg,
+  };
+
+  sgMail.send(emailMsg, (error) => {
+    if (error) {
+      Sentry.captureMessage(`EMAIL SEND ERROR: Unsuccessful send of sendWeeklyReminder to ${email}`);
     }
   });
 };

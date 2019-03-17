@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const md5 = require('md5');
 const Sentry = require('@sentry/node');
 const jwt = require('jsonwebtoken');
+const moment = require('moment');
 
 const User = mongoose.model('User');
 const Competition = mongoose.model('Competition');
@@ -31,8 +32,15 @@ exports.userVerification = async (req, res) => {
       if (user.competitions.length > 0 && user.verified === true) {
         res.redirect(`${rootURL}dashboard`);
       } else {
-        const verifiedUser = user;
-        verifiedUser.verified = true;
+        user.verified = true;
+        user.marketingEmails = {
+          lastSend: moment(new Date()).format('M/D/YYYY'),
+          nextSend: moment(new Date())
+            .add(2, 'days')
+            .format('M/D/YYYY'),
+          nextEmailToSend: 2,
+        };
+        user.markModified();
         user.save();
         mail.sendYouAreSignedUp(user.email, userID, user.name);
         res.redirect(`${rootURL}verified?success`);

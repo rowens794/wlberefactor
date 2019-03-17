@@ -4,6 +4,7 @@ const moment = require('moment');
 const User = mongoose.model('User');
 const Competition = mongoose.model('Competition');
 const ClickTracking = mongoose.model('ClickTracking');
+const Admin = mongoose.model('Admin');
 
 async function asyncForEach(array, callback) {
   var processedObj = [];
@@ -129,4 +130,21 @@ exports.admin = async (req, res) => {
   } else {
     res.json({ login: 'failed' });
   }
+};
+
+exports.getUsers = async (req, res) => {
+  var allUsers = [];
+  var adminData = {};
+
+  await Admin.find({}, (err, data) => {
+    adminData = data;
+  });
+
+  await User.find({}, (err, users) => {
+    allUsers = userAnalysis(users);
+  });
+
+  console.log(allUsers);
+
+  res.json({ status: 'success' });
 };
