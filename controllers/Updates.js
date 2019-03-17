@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const moment = require('moment');
 
 const User = mongoose.model('User');
 
@@ -107,18 +108,24 @@ const usersToUpdate = [
 ];
 
 exports.updateDB = async (req, res) => {
-  usersToUpdate.forEach((email) => {
-    User.find({ email: email }, async (usersRetrievalError, user) => {
-      user.marketingEmails = {
-        lastSend: moment(new Date()).format('M/D/YYYY'),
-        nextSend: moment(new Date())
-          .add(2, 'days')
-          .format('M/D/YYYY'),
-        nextEmailToSend: 2,
-      };
+  var lastSend = moment(new Date()).format('M/D/YYYY');
+  var nextSend = moment(new Date())
+    .add(2, 'days')
+    .format('M/D/YYYY');
 
-      user.markModified();
-      user.save();
+  usersToUpdate.forEach((email) => {
+    User.find({ email: email }, async (usersRetrievalError, results) => {
+      const user = results[0];
+      if (user) {
+        user.marketingEmails = {
+          lastSend,
+          nextSend,
+          nextEmailToSend: 2,
+        };
+
+        user.markModified();
+        user.save();
+      }
     });
   });
 
