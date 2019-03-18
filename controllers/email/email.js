@@ -399,7 +399,7 @@ exports.sendWinnerAnnouncement = async (focusUser, sortedUsers, competitionInfo,
 
 exports.sendMarketingEmail = async (email, name, userID, subject, marketingEmailNumber) => {
   const emailObj = new Email();
-  const beachbodyLinkURL = `${serverURL}beachbodyod?id=${userID}`;
+  const beachbodyLinkURL = `${serverURL}beachbodyod?id=${userID}&src=email-${marketingEmailNumber}`;
 
   const msg = await emailObj.render(`MarketingEmail-${marketingEmailNumber}`, {
     name,

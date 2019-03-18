@@ -4,10 +4,9 @@ const Sentry = require('@sentry/node');
 const ClickTracking = mongoose.model('ClickTracking');
 
 exports.beachbodyod = async (req, res) => {
-  console.log(req.query.id);
   ClickTracking.create(
     {
-      EmailName: 'You Are In',
+      EmailName: req.query.src,
       UserID: req.query.id,
       LinkSource: 'Beachbody OnDemand',
       ClickDate: new Date(),
