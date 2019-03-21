@@ -23,7 +23,7 @@ if (process.env.PRODUCTION === 'true') {
   global.serverURL = process.env.SERVER_PRODUCTION_URL;
   console.log('server started in PRODUCTION');
   console.log(`Frontend Root URL:   ${global.rootURL}`);
-  console.log(`Backend Root URL:   ${process.env.SERVER_URL}`);
+  console.log(`Backend Root URL:   ${process.env.SERVER_PRODUCTION_URL}`);
   DB_URI = `mongodb://${process.env.DB_USERNAME}:${
     process.env.DB_PASSWORD
   }@ds147264-a0.mlab.com:47264,ds147264-a1.mlab.com:47264/wtlscompn?replicaSet=rs-ds147264`;
