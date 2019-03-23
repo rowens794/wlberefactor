@@ -143,19 +143,23 @@ exports.getCompData = async (req, res) => {
   const userTokenID = jwt.verify(req.body.token, process.env.JWT_KEY);
   User.findById(userTokenID.userID, (userRetrievalError, user) => {
     if (userRetrievalError) {
-      Sentry.captureMessage(`COMPETITION: Cannon retrieve user from jwt provided: ${userTokenID.userID}`);
+      Sentry.captureMessage(`COMPETITION: Cannot retrieve user from jwt provided: ${userTokenID.userID}`);
       res.json({ status: 'failed' });
     }
     Competition.findById(req.body.competitionId, (competitionRetrievalError, competition) => {
       if (competitionRetrievalError) {
-        Sentry.captureMessage(`COMPETITION: Cannon retrieve competition from db: ${req.body.competitionId}`);
+        Sentry.captureMessage(`COMPETITION: Cannot retrieve competition from db: ${req.body.competitionId}`);
         res.json({ status: 'failed' });
       }
+      console.log('----------------------RetrievedUser-----------------------');
       const retrievedUser = user;
+      console.log(retrievedUser);
       const retrievedCompetetition = competition;
       retrievedUser.lastActiveCompetition = req.body.competitionId;
       retrievedUser.lastSignIn = new Date();
       retrievedUser.save();
+      console.log('----------------------RetrievedCompetition-----------------------');
+      console.log(retrievedCompetetition);
       retrievedCompetetition.LastCompetitionActivity = new Date();
       retrievedCompetetition.save();
       res.json(competition);
