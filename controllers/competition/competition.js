@@ -160,9 +160,13 @@ exports.getCompData = async (req, res) => {
       retrievedUser.save();
       console.log('----------------------RetrievedCompetition-----------------------');
       console.log(retrievedCompetetition);
-      retrievedCompetetition.LastCompetitionActivity = new Date();
-      retrievedCompetetition.save();
-      res.json(competition);
+      if (retrievedCompetetition) {
+        retrievedCompetetition.LastCompetitionActivity = new Date();
+        retrievedCompetetition.save();
+        res.json(competition);
+      } else {
+        res.send('no competition Found');
+      }
     });
   });
 };
