@@ -1,10 +1,13 @@
 const mongoose = require('mongoose');
 const moment = require('moment');
+const client = require('@sendgrid/client');
 
 const User = mongoose.model('User');
 const Competition = mongoose.model('Competition');
 const ClickTracking = mongoose.model('ClickTracking');
 const Admin = mongoose.model('Admin');
+
+client.setApiKey(process.env.SENDGRID_API_KEY);
 
 async function asyncForEach(array, callback) {
   var processedObj = [];
@@ -147,4 +150,50 @@ exports.getUsers = async (req, res) => {
   console.log(allUsers);
 
   res.json({ status: 'success' });
+};
+
+async function getMailStats(startDate, endDate, category) {
+  const request = {};
+  const queryParams = {
+    aggregated_by: 'day',
+    end_date: endDate, //format = '2019-03-05'
+    limit: 1,
+    offset: 1,
+    start_date: startDate, //format = '2019-03-05'
+    category,
+  };
+  request.qs = queryParams;
+  request.method = 'GET';
+  request.url = '/v3/stats';
+
+  var resBody = undefined;
+
+  await client.request(request).then(([response, body]) => {
+    resBody = body;
+  });
+  return resBody;
+}
+
+async function getEmailCategories() {
+  const request = {};
+  const queryParams = {
+    //no params
+  };
+  request.qs = queryParams;
+  request.method = 'GET';
+  request.url = '/v3/categories';
+
+  var resCategories = undefined;
+
+  await client.request(request).then(([response, body]) => {
+    resCategories = body;
+  });
+  return resCategories;
+}
+
+exports.getMailStats = async (req, res) => {
+  var emailCategories = await getEmailCategories();
+  console.log(emailCategories);
+
+  res.json({ emailCategories });
 };

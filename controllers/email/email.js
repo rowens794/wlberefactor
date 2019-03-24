@@ -32,6 +32,7 @@ exports.sendYouAreSignedUp = async (email, userID, name) => {
     subject: 'You are All Setup + Tips for Shedding Pounds',
     text,
     html: msg,
+    categories: ['you-are-signed-up', 'transactional'],
   };
 
   sgMail.send(emailMsg, (error) => {
@@ -64,6 +65,7 @@ exports.sendWelcomeEmail = async (email, userID, name, verificationString) => {
     subject: 'Welcome To Flipping the Scales',
     text,
     html: msg,
+    categories: ['welcome-email', 'transactional'],
   };
 
   sgMail.send(emailMsg, (error) => {
@@ -95,6 +97,7 @@ exports.sendJoinCompEmail = async (email, name, invitor, competitionID) => {
     subject: "You've been Invited to a Weightloss Competition",
     text,
     html: msg,
+    categories: ['join-competition', 'transactional'],
   };
 
   sgMail.send(emailMsg, (error) => {
@@ -126,6 +129,7 @@ exports.sendYouveBeenAddedEmail = async (email, name, invitor, competitionName) 
     subject: "You've been Added to a Weightloss Competition",
     text,
     html: msg,
+    categories: ['youve-been-added', 'transactional'],
   };
 
   sgMail.send(emailMsg, (error) => {
@@ -155,6 +159,7 @@ exports.sendPasswordReset = async (email, link) => {
     subject: 'PASSWORD RESET: Flipping The Scales',
     text,
     html: msg,
+    categories: ['reset-password', 'transactional'],
   };
 
   sgMail.send(emailMsg, (error) => {
@@ -185,6 +190,7 @@ exports.sendReminderEmail = async (name, email, competitionName) => {
     subject: `Weigh-in Today - ${competitionName}`,
     text,
     html: msg,
+    categories: ['update-emails', 'weekly-reminder'],
   };
 
   sgMail.send(emailMsg, (error) => {
@@ -218,6 +224,7 @@ exports.sendWeeklyReminder = async (focusUser, sortedUsers, competitionInfo, com
     subject: `Weekly Update for ${competitionName}`,
     text,
     html: msg,
+    categories: ['update-emails', 'weekly-update'],
   };
 
   sgMail.send(emailMsg, (error) => {
@@ -284,6 +291,7 @@ exports.sendInterimAnnouncement = async (focusUser, sortedUsers, competitionInfo
     subject: `Interim Prize Awarded for ${competitionName}`,
     text,
     html: msg,
+    categories: ['update-emails', 'update-emails-interim-announcement'],
   };
 
   sgMail.send(emailMsg, (error) => {
@@ -374,6 +382,7 @@ exports.sendWinnerAnnouncement = async (focusUser, sortedUsers, competitionInfo,
     winnersObj,
     rootURL,
     serverURL,
+    categories: ['update-emails', 'update-emails-winner-announcement'],
   });
 
   const text = htmlToText.fromString(msg, {
@@ -419,6 +428,7 @@ exports.sendMarketingEmail = async (email, name, userID, subject, marketingEmail
     subject,
     text,
     html: msg,
+    categories: ['marketing-email', `marketing-email-${marketingEmailNumber}`],
   };
 
   sgMail.send(emailMsg, (error) => {

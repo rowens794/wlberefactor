@@ -140,4 +140,8 @@ router.get('/updateDB', (req, res) => {
   Updates.updateDB(req, res);
 });
 
+router.get('/getMailStats', (req, res) => {
+  admin.getMailStats(req, res);
+});
+
 module.exports = router;
