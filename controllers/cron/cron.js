@@ -170,6 +170,7 @@ function testWeighIns(currentPeriod, previousPeriod) {
 }
 
 function getUserInfo(competition, refDate) {
+  var continueSearch = null;
   var userList = [];
 
   for (let i = 0; i < competition.Players.length; i += 1) {
@@ -185,11 +186,27 @@ function getUserInfo(competition, refDate) {
     const startDate = moment(new Date(competition.StartDate)).format('M/D/YYYY');
 
     // grab weights from individual user objects
-    const mostRecentWeighin = competition.Players[i][2][refDate];
+    let mostRecentWeighin = competition.Players[i][2][refDate];
     const previousWeekWeighin = competition.Players[i][2][lastWeekDate];
     const twoWeeksAgoWeighin = competition.Players[i][2][twoWeeksAgoDate];
     const fourWeeksAgoWeighin = competition.Players[i][2][fourWeeksAgoDate];
     const initialWeighIn = competition.Players[i][2][startDate];
+
+    // if mostRecentWeightin == null then search for most recent
+    if (mostRecentWeighin == null) {
+      continueSearch = true;
+      for (let j = 0; j < 100; j += 1) {
+        if (continueSearch) {
+          var lookupDate = moment(new Date(refDate))
+            .subtract(j, 'days')
+            .format('M/D/YYYY');
+          if (competition.Players[i][2][lookupDate] || competition.Players[i][2][lookupDate] === undefined) {
+            mostRecentWeighin = competition.Players[i][2][lookupDate];
+            continueSearch = false;
+          }
+        }
+      }
+    }
 
     // test the values of weighins to ensure a weighin wasn't missed
     var weeklyLoss = testWeighIns(mostRecentWeighin, previousWeekWeighin);
@@ -235,7 +252,6 @@ function sortCompetitionUserInfo(userInfo, period) {
     if (b[key] === 'N/A') return -1;
     return parseFloat(a[key]) - parseFloat(b[key]);
   });
-
   return userInfo;
 }
 
@@ -298,6 +314,7 @@ const cycleCompetitionsReview = async (competitions) => {
 
     // 2. determine if today is a day that emails should be sent
     var refDate = referenceDate;
+
     var emailDay = competitionInfo.weekEndDates.indexOf(refDate);
 
     if (emailDay !== -1 && emailDay !== 0) {
