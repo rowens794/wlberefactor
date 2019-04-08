@@ -205,6 +205,7 @@ exports.updateComp = async (req, res) => {
 
       const competitionObj = competition;
 
+      // check for competition
       for (let i = 0; i < competition.Players.length; i += 1) {
         // find the user in the competition by email
 
